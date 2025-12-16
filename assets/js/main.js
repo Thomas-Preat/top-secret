@@ -12,21 +12,11 @@ const firebaseConfig = {
   projectId: "topsecret-9ae10",
   storageBucket: "topsecret-9ae10.firebasestorage.app",
   messagingSenderId: "946145195302",
-  appId: "1:946145195302:web:a25c392b7efde11137fde7",
-  measurementId: "G-6E69WMM89W"
+  appId: "1:946145195302:web:a25c392b7efde11137fde7"
 };
 
-// Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
-
-const checklistRef = collection(db, "checklist");
-
-const snapshot = await getDocs(checklistRef);
-
-snapshot.forEach(d => {
-    console.log(d.id, d.data());
-});
+const db = getFirestore(app);
 
 //-----------------------------------------------------
 
@@ -56,3 +46,11 @@ if (navToggle && navMenu) {
         });
     });
 }
+
+
+const checklistRef = collection(db, "checklist");
+const snapshot = await getDocs(checklistRef);
+
+snapshot.forEach(d => {
+    console.log(d.id, d.data());
+});

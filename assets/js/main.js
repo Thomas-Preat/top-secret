@@ -46,3 +46,10 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
+
+const checklistRef = collection(db, "checklist");
+
+const snapshot = await getDocs(checklistRef);
+
+snapshot.forEach(d => {
+  console.log(d.id, d.data());

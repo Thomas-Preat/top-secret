@@ -52,4 +52,5 @@ const checklistRef = collection(db, "checklist");
 const snapshot = await getDocs(checklistRef);
 
 snapshot.forEach(d => {
-  console.log(d.id, d.data());
+    console.log(d.id, d.data());
+  });

@@ -1,3 +1,7 @@
+// Import the functions you need from the SDKs you need
+import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
+
 //function to select elements
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $all = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
@@ -25,9 +29,6 @@ if (navToggle && navMenu) {
     });
 }
 
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 

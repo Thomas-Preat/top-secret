@@ -25,6 +25,23 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+const IMAGE_MAP = {
+    bed: {
+        src: "/assets/images/bed.jpg",
+        position: "50% 50%"
+    },
+    fruits: {
+        src: "/assets/images/fruits.jpg",
+        position: "center top"
+    },
+    fireplace: {
+        src: "/assets/images/fireplace.jpg",
+        position: "center bottom"
+    }
+};
+
+
+
 //-----------------------------------------------------
 
 //function to select elements
@@ -69,6 +86,7 @@ snapshot.forEach(docSnap => {
     const wrapper = document.createElement("div");
 
     const checkbox = document.createElement("input");
+
     checkbox.type = "checkbox";
     checkbox.checked = data.checked;
 
@@ -84,5 +102,32 @@ snapshot.forEach(docSnap => {
     wrapper.appendChild(checkbox);
     wrapper.appendChild(label);
 
+    wrapper.classList.add("check-item");
+
+    wrapper.addEventListener("click", e => {
+        if (e.target.tagName !== "INPUT") {
+            checkbox.checked = !checkbox.checked;
+            checkbox.dispatchEvent(new Event("change"));
+        }
+    });
+
     checklistContainer.appendChild(wrapper);
+
+    const imgConf = IMAGE_MAP[data.imageTag];
+
+    if (imgConf) {
+        wrapper.style.backgroundImage = `url(${imgConf.src})`;
+        wrapper.style.backgroundPosition = imgConf.position;
+}
+
+
+
+    const updateStyle = () => {
+        wrapper.classList.toggle("checked", checkbox.checked);
+    };
+
+    updateStyle();
+    
+    checkbox.addEventListener("change", updateStyle);
 });
+

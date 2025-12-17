@@ -28,7 +28,8 @@ const db = getFirestore(app);
 const IMAGE_MAP = {
     bed: {
         src: "/assets/images/bed.jpg",
-        position: "50% 50%"
+        position: "50% 50%",
+        opacity: "0.2"
     },
     fruits: {
         src: "/assets/images/fruits.jpg",
@@ -118,6 +119,7 @@ snapshot.forEach(docSnap => {
     if (imgConf) {
         wrapper.style.backgroundImage = `url(${imgConf.src})`;
         wrapper.style.backgroundPosition = imgConf.position;
+        wrapper.style.backgroundopacity = imgConf.opacity || "1";
 }
 
 

@@ -1,5 +1,12 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  updateDoc,
+  doc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -47,9 +54,9 @@ if (navToggle && navMenu) {
     });
 }
 
+//-----------------------------------------------------
 
-const checklistRef = collection(db, "checklist");
-const snapshot = await getDocs(checklistRef);
+//checklist
 
 const checklistContainer = document.getElementById("checklist");
 

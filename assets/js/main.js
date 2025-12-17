@@ -51,6 +51,31 @@ if (navToggle && navMenu) {
 const checklistRef = collection(db, "checklist");
 const snapshot = await getDocs(checklistRef);
 
-snapshot.forEach(d => {
-    console.log(d.id, d.data());
+const checklistContainer = document.getElementById("checklist");
+
+const checklistRef = collection(db, "checklist");
+const snapshot = await getDocs(checklistRef);
+
+snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+
+    const wrapper = document.createElement("div");
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = data.checked;
+
+    const label = document.createElement("span");
+    label.textContent = data.label;
+
+    checkbox.addEventListener("change", async () => {
+        await updateDoc(doc(db, "checklist", docSnap.id), {
+            checked: checkbox.checked
+        });
+    });
+
+    wrapper.appendChild(checkbox);
+    wrapper.appendChild(label);
+
+    checklistContainer.appendChild(wrapper);
 });

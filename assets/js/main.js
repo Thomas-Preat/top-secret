@@ -4,7 +4,9 @@ import {
   collection,
   getDocs,
   updateDoc,
-  doc
+  addDoc,
+  doc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
@@ -276,12 +278,123 @@ loginBtn.addEventListener("click", async () => {
     const password = passwordInput.value;
 
     try {
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        await signInWithEmailAndPassword(auth, email, password);
         // Success: enable admin mode
         document.body.classList.add("admin-mode");
         loginMsg.textContent = "Admin mode enabled!";
         adminLoginForm.style.display = "none";
+
+        // Show admin editor
+        enableAdminEditor();
     } catch (error) {
         loginMsg.textContent = "Login failed: " + error.message;
     }
 });
+
+/* ---------------- Admin Editor ---------------- */
+function enableAdminEditor() {
+  const editor = $("#admin-editor");
+  if (!editor) return;
+  editor.style.display = "flex"; // show editor
+
+  // Elements
+  const selectInput = $("#admin-select");
+  const titleInput = $("#admin-title");
+  const descInput = $("#admin-desc");
+  const imageSelect = $("#admin-image");
+  const tagsInput = $("#admin-tags");
+  const createBtn = $("#admin-create");
+  const updateBtn = $("#admin-update");
+  const deleteBtn = $("#admin-delete");
+
+  let selectedId = null;
+
+  // Populate dropdown
+  function populateSelect() {
+    if (!selectInput) return;
+    selectInput.innerHTML = '<option value="">-- Select item --</option>';
+    checklistItems.forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item.id;
+      opt.textContent = item.label || item.id;
+      selectInput.appendChild(opt);
+    });
+  }
+
+  populateSelect(); // initial population
+
+  // When selecting an item
+  selectInput.addEventListener("change", () => {
+    selectedId = selectInput.value;
+    if (!selectedId) {
+      titleInput.value = "";
+      descInput.value = "";
+      imageSelect.value = "";
+      tagsInput.value = "";
+      return;
+    }
+    const selected = checklistItems.find(i => i.id === selectedId);
+    if (!selected) return;
+
+    titleInput.value = selected.label;
+    descInput.value = selected.description || "";
+    imageSelect.value = selected.imageTag || "";
+    tagsInput.value = (selected.tags || []).join(",");
+  });
+
+  // Create new item
+  createBtn.addEventListener("click", async () => {
+    const newItem = {
+      label: titleInput.value,
+      description: descInput.value,
+      imageTag: imageSelect.value,
+      tags: tagsInput.value.split(",").map(t => t.trim())
+    };
+    await addDoc(checklistRef, newItem);
+    await reloadChecklist();
+    populateSelect();
+    selectInput.value = "";
+    titleInput.value = "";
+    descInput.value = "";
+    imageSelect.value = "";
+    tagsInput.value = "";
+  });
+
+  // Update selected item
+  updateBtn.addEventListener("click", async () => {
+    if (!selectedId) return alert("Select an item to update");
+    await updateDoc(doc(db, "checklist", selectedId), {
+      label: titleInput.value,
+      description: descInput.value,
+      imageTag: imageSelect.value,
+      tags: tagsInput.value.split(",").map(t => t.trim())
+    });
+    await reloadChecklist();
+    populateSelect();
+    selectInput.value = selectedId; // keep selection
+  });
+
+  // Delete selected item
+  deleteBtn.addEventListener("click", async () => {
+    if (!selectedId) return alert("Select an item to delete");
+    await deleteDoc(doc(db, "checklist", selectedId));
+    selectedId = null;
+    await reloadChecklist();
+    populateSelect();
+    selectInput.value = "";
+    titleInput.value = "";
+    descInput.value = "";
+    imageSelect.value = "";
+    tagsInput.value = "";
+  });
+
+  // Helper to reload checklist items from Firestore
+  async function reloadChecklist() {
+    checklistItems = [];
+    const snapshot = await getDocs(checklistRef);
+    snapshot.forEach(docSnap => {
+      checklistItems.push({ id: docSnap.id, ...docSnap.data() });
+    });
+    renderChecklist();
+  }
+}

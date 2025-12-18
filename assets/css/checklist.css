@@ -103,12 +103,12 @@
 }
 
 .check-item.open .check-description {
-    max-height: 1rem; /* large enough for text */
+    max-height: 200px; /* large enough for text */
     opacity: 1;
     margin-top: 0.6rem;
 }
 
 .check-item.open {
-    height: 10rem;
+    height: 6rem;
     background-color: rgba(0, 0, 0, 0.65);
 }

@@ -7,51 +7,36 @@ import {
   doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* Firebase config */
+import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+/* ---------------- Firebase ---------------- */
 const firebaseConfig = {
   apiKey: "AIzaSyCPawC7OPXmvzu2Fj8Uzfj1ZXQI3v-6VL8",
   authDomain: "topsecret-9ae10.firebaseapp.com",
+  databaseURL: "https://topsecret-9ae10-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "topsecret-9ae10",
   storageBucket: "topsecret-9ae10.firebasestorage.app",
   messagingSenderId: "946145195302",
-  appId: "1:946145195302:web:a25c392b7efde11137fde7"
+  appId: "1:946145195302:web:a25c392b7efde11137fde7",
+  measurementId: "G-6E69WMM89W"
 };
+
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-/* Image mapping (GitHub Pages safe paths) */
+const auth = getAuth();
+
+/* ---------------- Images ---------------- */
 const IMAGE_MAP = {
-  bed: {
-    src: "../../assets/images/bed.jpg",
-    position: "50% 50%"
-  },
-  fruits: {
-    src: "../../assets/images/fruits.jpg",
-    position: "center top"
-  },
-  fireplace: {
-    src: "../../assets/images/fireplace.jpg",
-    position: "center bottom"
-  },
-  outside: {
-    src: "../../assets/images/outside.jpg",
-    position: "50% 30%"
-  },
-  cooking: {
-    src: "../../assets/images/cooking.jpg",
-    position: "50% 70%"
-  }
-};
+  bed: { src: "/assets/images/bed.jpg", position: "50% 50%" },
+  outside: {src: "../../assets/images/outside.jpg",position: "50% 30%"},
+  cooking: {src: "../../assets/images/cooking.jpg",position: "50% 70%"}
+  };
 
-/* -------------------------------------------------- */
-/* helpers */
-
+/* ---------------- Menu ---------------- */
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $all = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
-
-/* -------------------------------------------------- */
-/* nav menu */
 
 const navToggle = $(".nav-toggle");
 const navMenu = $("#primary-nav");
@@ -71,77 +56,213 @@ if (navToggle && navMenu) {
   });
 }
 
-/* -------------------------------------------------- */
-/* checklist */
-
+/* ---------------- Checklist logic ---------------- */
 const checklistContainer = document.getElementById("checklist");
-
 const checklistRef = collection(db, "checklist");
+
+let checklistItems = [];
+let searchQuery = "";
+let activeTags = new Set();
+let sortMode = "default";
+
+/* ---------- Load data ---------- */
 const snapshot = await getDocs(checklistRef);
-
 snapshot.forEach(docSnap => {
-  const data = docSnap.data();
+  checklistItems.push({ id: docSnap.id, ...docSnap.data() });
+});
 
-  const wrapper = document.createElement("div");
-  wrapper.classList.add("check-item");
+renderChecklist();
+buildTagFilters(checklistItems);
+setupFilterPanel();
 
-  /* checkbox */
-  const checkbox = document.createElement("input");
-  checkbox.type = "checkbox";
-  checkbox.checked = data.checked;
-
-  /* text container */
-  const textWrap = document.createElement("div");
-  textWrap.classList.add("check-text");
-
-  const label = document.createElement("div");
-  label.classList.add("check-label");
-  label.textContent = data.label;
-
-  const desc = document.createElement("div");
-  desc.classList.add("check-description");
-  desc.textContent = data.description || "";
-
-  textWrap.appendChild(label);
-  textWrap.appendChild(desc);
-
-  wrapper.appendChild(checkbox);
-  wrapper.appendChild(textWrap);
-  checklistContainer.appendChild(wrapper);
-
-  /* checked style */
-  const updateStyle = () => {
-    wrapper.classList.toggle("checked", checkbox.checked);
-  };
-  updateStyle();
-
-  /* persist checkbox to Firestore */
-  checkbox.addEventListener("change", async () => {
-    await updateDoc(doc(db, "checklist", docSnap.id), {
-      checked: checkbox.checked
-    });
-    updateStyle();
-  });
-
-  /* background image */
-  const imgConf = IMAGE_MAP[data.imageTag];
-  if (imgConf) {
-    wrapper.style.backgroundImage = `url(${imgConf.src})`;
-    wrapper.style.backgroundPosition = imgConf.position;
-  }
-
-  /* accordion behavior */
-  wrapper.addEventListener("click", e => {
-    if (e.target.tagName === "INPUT") return;
-
-    const isOpen = wrapper.classList.contains("open");
-
-    document.querySelectorAll(".check-item.open").forEach(item => {
-      item.classList.remove("open");
-    });
-
-    if (!isOpen) {
-      wrapper.classList.add("open");
+/* ---------- Sorting ---------- */
+function sortItems(items) {
+  return items.slice().sort((a, b) => {
+    switch (sortMode) {
+      case "az":
+        return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
+      case "za":
+        return b.label.localeCompare(a.label, "fr", { sensitivity: "base" });
+      case "checked":
+        return a.checked === b.checked
+          ? a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
+          : a.checked ? 1 : -1;
+      default:
+        // unchecked first, then alphabetical
+        if (a.checked !== b.checked) return a.checked ? 1 : -1;
+        return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
     }
   });
+}
+
+/* ---------- Filtering ---------- */
+function filterItems(items) {
+  return items.filter(item => {
+    const matchesSearch =
+      !searchQuery ||
+      item.label.toLowerCase().includes(searchQuery) ||
+      (item.description || "").toLowerCase().includes(searchQuery);
+
+    const matchesTags =
+      activeTags.size === 0 ||
+      (item.tags || []).some(tag => activeTags.has(tag));
+
+    return matchesSearch && matchesTags;
+  });
+}
+
+/* ---------- Render ---------- */
+function renderChecklist() {
+  checklistContainer.innerHTML = "";
+
+  const filtered = filterItems(checklistItems);
+  const sorted = sortItems(filtered);
+
+  sorted.forEach(data => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "check-item";
+    if (data.checked) wrapper.classList.add("checked");
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = data.checked;
+
+    const textWrap = document.createElement("div");
+    textWrap.className = "check-text";
+
+    const label = document.createElement("div");
+    label.className = "check-label";
+    label.textContent = data.label;
+
+    const desc = document.createElement("div");
+    desc.className = "check-description";
+    desc.textContent = data.description || "";
+
+    textWrap.appendChild(label);
+    textWrap.appendChild(desc);
+
+    wrapper.appendChild(checkbox);
+    wrapper.appendChild(textWrap);
+
+    const imgConf = IMAGE_MAP[data.imageTag];
+    if (imgConf) {
+      wrapper.style.backgroundImage = `url(${imgConf.src})`;
+      wrapper.style.backgroundPosition = imgConf.position || "center";
+    }
+
+    checkbox.addEventListener("change", async () => {
+      data.checked = checkbox.checked;
+      await updateDoc(doc(db, "checklist", data.id), { checked: checkbox.checked });
+      renderChecklist();
+    });
+
+    wrapper.addEventListener("click", e => {
+      if (e.target.tagName === "INPUT") return;
+      document.querySelectorAll(".check-item.open").forEach(i => i.classList.remove("open"));
+      wrapper.classList.toggle("open");
+    });
+
+    checklistContainer.appendChild(wrapper);
+  });
+}
+
+/* ---------- Search input ---------- */
+const searchInput = document.getElementById("check-search");
+if (searchInput) {
+  searchInput.addEventListener("input", e => {
+    searchQuery = e.target.value.trim().toLowerCase();
+    renderChecklist();
+  });
+}
+
+/* ---------- Tag filters ---------- */
+function buildTagFilters(items) {
+  const tagContainer = document.getElementById("tag-filters");
+  if (!tagContainer) return;
+
+  const tags = new Set();
+  items.forEach(item => (item.tags || []).forEach(tag => tags.add(tag)));
+
+  tagContainer.innerHTML = "";
+
+  tags.forEach(tag => {
+    const btn = document.createElement("button");
+    btn.textContent = tag;
+    btn.className = "tag-btn";
+
+    btn.addEventListener("click", () => {
+      if (activeTags.has(tag)) {
+        activeTags.delete(tag);
+        btn.classList.remove("active");
+      } else {
+        activeTags.add(tag);
+        btn.classList.add("active");
+      }
+      renderChecklist();
+    });
+
+    tagContainer.appendChild(btn);
+  });
+}
+
+/* ---------- Filter panel ---------- */
+function setupFilterPanel() {
+  const filterToggle = document.getElementById("filter-toggle");
+  const filterPanel = document.getElementById("filter-panel");
+
+  if (!filterToggle || !filterPanel) return;
+
+  // toggle panel
+  filterToggle.addEventListener("click", e => {
+    e.stopPropagation();
+    filterPanel.hidden = !filterPanel.hidden;
+  });
+
+  // close panel when clicking outside
+  document.addEventListener("click", () => {
+    filterPanel.hidden = true;
+  });
+
+  filterPanel.addEventListener("click", e => e.stopPropagation());
+
+  // sorting buttons
+  filterPanel.querySelectorAll("[data-sort]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      sortMode = btn.dataset.sort;
+      filterPanel.querySelectorAll("[data-sort]").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderChecklist();
+    });
+  });
+}
+
+/* ---------------- Admin Menu ---------------- */
+
+const adminToggleBtn = document.getElementById("admin-menu-toggle");
+const adminLoginForm = document.getElementById("admin-login");
+
+adminToggleBtn.addEventListener("click", () => {
+    adminLoginForm.style.display = adminLoginForm.style.display === "block" ? "none" : "block";
+});
+
+/* ---------------- Login logic ---------------- */
+
+const loginBtn = document.getElementById("loginBtn");
+const usernameInput = document.getElementById("username");
+const passwordInput = document.getElementById("password");
+const loginMsg = document.getElementById("loginMsg");
+
+loginBtn.addEventListener("click", async () => {
+    const email = usernameInput.value;
+    const password = passwordInput.value;
+
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // Success: enable admin mode
+        document.body.classList.add("admin-mode");
+        loginMsg.textContent = "Admin mode enabled!";
+        adminLoginForm.style.display = "none";
+    } catch (error) {
+        loginMsg.textContent = "Login failed: " + error.message;
+    }
 });

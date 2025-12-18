@@ -10,6 +10,9 @@
     <header class="header-banner">
         <h1 class="logo">Thomas Préat</h1>
 
+        <button id="admin-menu-toggle" style="position:fixed;bottom:10px;right:10px;">⚙️</button>
+
+
         <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Ouvrir le menu">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
@@ -22,11 +25,44 @@
         </nav>
     </header>
 
-    <main>
-    <h1>TestChecklist</h1>
-    </main>
+<div id="admin-login" style="display:none;position:fixed;bottom:50px;right:10px;background:#111;padding:1rem;border-radius:6px;color:white;z-index:1000;">
+    <input type="text" id="admin-username" placeholder="Name">
+    <input type="password" id="admin-password" placeholder="Password">
+    <button id="loginBtn">Login</button>
+    <p id="admin-login-msg" style="color:red;font-size:0.85rem;"></p>
+</div>
 
-    <section id="checklist"></section>
+
+<div class="check-controls">
+    <input
+        type="search"
+        id="check-search"
+        placeholder="Rechercher..."
+        autocomplete="off"
+    >
+
+    <button id="filter-toggle" aria-label="Filtres">
+        ☰
+    </button>
+
+    <div id="filter-panel" hidden>
+        <div class="filter-section">
+            <h4>Trier</h4>
+            <button data-sort="default">Non faits → faits (A-Z)</button>
+            <button data-sort="az">A-Z</button>
+            <button data-sort="za">Z-A</button>
+        </div>
+
+        <div class="filter-section">
+            <h4>Tags</h4>
+            <div id="tag-filters"></div>
+        </div>
+    </div>
+</div>
+
+
+
+<section id="checklist"></section>
 
 <script type="module" src="../../assets/js/main.js"></script>
 </body>

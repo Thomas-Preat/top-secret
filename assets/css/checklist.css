@@ -1,0 +1,114 @@
+#checklist {
+    width: 100%;
+    margin-top: 1rem;
+}
+
+.check-item {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+
+    width: 100%;
+    height: 3.5rem;
+
+    padding: 1rem 1.25rem;
+
+    border-bottom: 1px solid #e5e5e5;
+
+    cursor: pointer;
+    
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+
+    cursor: pointer;
+    overflow: hidden;
+
+    transition: 
+        background-color 0.3s ease,
+        height 0.4s ease;
+}
+
+.check-item:last-child {
+    border-bottom: none;
+}
+
+.check-item input[type="checkbox"] {
+    transform: scale(1.4);
+    cursor: pointer;
+}
+
+.check-item span {
+    font-size: 1.1rem;
+    line-height: 1.4;
+    flex: 1;
+}
+
+.check-item.checked {
+    background-color: #000000b8;
+}
+
+.check-item.checked span {
+    opacity: 0.6;
+}
+
+.check-item::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,1));
+    z-index: 0;
+}
+
+
+/* make the content above the overlay */
+.check-item > * {
+    position: relative;
+    z-index: 1;
+}
+
+.check-description {
+    margin-top: 0.5rem;
+    padding: 0.5rem 2rem;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.95rem;
+}
+
+.check-text {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.check-label {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.check-description {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+
+    transition:
+        max-height 0.4s ease,
+        opacity 0.25s ease,
+        margin-top 0.25s ease;
+
+    font-size: 0.95rem;
+    line-height: 1.4;
+    color: #e0e0e0;
+}
+
+.check-item.open .check-description {
+    max-height: 1rem; /* large enough for text */
+    opacity: 1;
+    margin-top: 0.6rem;
+}
+
+.check-item.open {
+    height: 10rem;
+    background-color: rgba(0, 0, 0, 0.65);
+}

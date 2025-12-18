@@ -7,12 +7,7 @@ import {
   doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+/* Firebase config */
 const firebaseConfig = {
   apiKey: "AIzaSyCPawC7OPXmvzu2Fj8Uzfj1ZXQI3v-6VL8",
   authDomain: "topsecret-9ae10.firebaseapp.com",
@@ -25,56 +20,51 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* Image mapping (GitHub Pages safe paths) */
 const IMAGE_MAP = {
-    bed: {
-        src: "/assets/images/bed.jpg",
-        position: "50% 50%",
-        opacity: "0.2"
-    },
-    fruits: {
-        src: "/assets/images/fruits.jpg",
-        position: "center top"
-    },
-    fireplace: {
-        src: "/assets/images/fireplace.jpg",
-        position: "center bottom"
-    }
+  bed: {
+    src: "../../assets/images/bed.jpg",
+    position: "50% 50%"
+  },
+  fruits: {
+    src: "../../assets/images/fruits.jpg",
+    position: "center top"
+  },
+  fireplace: {
+    src: "../../assets/images/fireplace.jpg",
+    position: "center bottom"
+  }
 };
 
+/* -------------------------------------------------- */
+/* helpers */
 
-
-//-----------------------------------------------------
-
-//function to select elements
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $all = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
-//menu toggle
-const navToggle = $('.nav-toggle');
-const navMenu = $('#primary-nav');
+/* -------------------------------------------------- */
+/* nav menu */
+
+const navToggle = $(".nav-toggle");
+const navMenu = $("#primary-nav");
 
 if (navToggle && navMenu) {
-    console.log('ici');
-    navToggle.addEventListener('click', () => {
-        console.log('click');
-        const expanded = navToggle.getAttribute('aria-expanded') === 'true';
-        navToggle.setAttribute('aria-expanded', !expanded);
-        navMenu.classList.toggle('show');
-    });
+  navToggle.addEventListener("click", () => {
+    const expanded = navToggle.getAttribute("aria-expanded") === "true";
+    navToggle.setAttribute("aria-expanded", !expanded);
+    navMenu.classList.toggle("show");
+  });
 
-    // close menu when clicking a link
-    $all('#primary-nav a').forEach(link => {
-        link.addEventListener('click', () => {
-            console.log('click link');
-            navToggle.setAttribute('aria-expanded', false);
-            navMenu.classList.remove('show');
-        });
+  $all("#primary-nav a").forEach(link => {
+    link.addEventListener("click", () => {
+      navToggle.setAttribute("aria-expanded", false);
+      navMenu.classList.remove("show");
     });
+  });
 }
 
-//-----------------------------------------------------
-
-//checklist
+/* -------------------------------------------------- */
+/* checklist */
 
 const checklistContainer = document.getElementById("checklist");
 
@@ -82,54 +72,68 @@ const checklistRef = collection(db, "checklist");
 const snapshot = await getDocs(checklistRef);
 
 snapshot.forEach(docSnap => {
-    const data = docSnap.data();
+  const data = docSnap.data();
 
-    const wrapper = document.createElement("div");
+  const wrapper = document.createElement("div");
+  wrapper.classList.add("check-item");
 
-    const checkbox = document.createElement("input");
+  /* checkbox */
+  const checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.checked = data.checked;
 
-    checkbox.type = "checkbox";
-    checkbox.checked = data.checked;
+  /* text container */
+  const textWrap = document.createElement("div");
+  textWrap.classList.add("check-text");
 
-    const label = document.createElement("span");
-    label.textContent = data.label;
+  const label = document.createElement("div");
+  label.classList.add("check-label");
+  label.textContent = data.label;
 
-    checkbox.addEventListener("change", async () => {
-        await updateDoc(doc(db, "checklist", docSnap.id), {
-            checked: checkbox.checked
-        });
+  const desc = document.createElement("div");
+  desc.classList.add("check-description");
+  desc.textContent = data.description || "";
+
+  textWrap.appendChild(label);
+  textWrap.appendChild(desc);
+
+  wrapper.appendChild(checkbox);
+  wrapper.appendChild(textWrap);
+  checklistContainer.appendChild(wrapper);
+
+  /* checked style */
+  const updateStyle = () => {
+    wrapper.classList.toggle("checked", checkbox.checked);
+  };
+  updateStyle();
+
+  /* persist checkbox to Firestore */
+  checkbox.addEventListener("change", async () => {
+    await updateDoc(doc(db, "checklist", docSnap.id), {
+      checked: checkbox.checked
     });
-
-    wrapper.appendChild(checkbox);
-    wrapper.appendChild(label);
-
-    wrapper.classList.add("check-item");
-
-    wrapper.addEventListener("click", e => {
-        if (e.target.tagName !== "INPUT") {
-            checkbox.checked = !checkbox.checked;
-            checkbox.dispatchEvent(new Event("change"));
-        }
-    });
-
-    checklistContainer.appendChild(wrapper);
-
-    const imgConf = IMAGE_MAP[data.imageTag];
-
-    if (imgConf) {
-        wrapper.style.backgroundImage = `url(${imgConf.src})`;
-        wrapper.style.backgroundPosition = imgConf.position;
-        wrapper.style.backgroundopacity = imgConf.opacity || "1";
-}
-
-
-
-    const updateStyle = () => {
-        wrapper.classList.toggle("checked", checkbox.checked);
-    };
-
     updateStyle();
-    
-    checkbox.addEventListener("change", updateStyle);
-});
+  });
 
+  /* background image */
+  const imgConf = IMAGE_MAP[data.imageTag];
+  if (imgConf) {
+    wrapper.style.backgroundImage = `url(${imgConf.src})`;
+    wrapper.style.backgroundPosition = imgConf.position;
+  }
+
+  /* accordion behavior */
+  wrapper.addEventListener("click", e => {
+    if (e.target.tagName === "INPUT") return;
+
+    const isOpen = wrapper.classList.contains("open");
+
+    document.querySelectorAll(".check-item.open").forEach(item => {
+      item.classList.remove("open");
+    });
+
+    if (!isOpen) {
+      wrapper.classList.add("open");
+    }
+  });
+});

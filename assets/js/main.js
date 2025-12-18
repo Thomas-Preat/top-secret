@@ -157,10 +157,19 @@ function renderChecklist() {
     });
 
     wrapper.addEventListener("click", e => {
-      if (e.target.tagName === "INPUT") return;
-      document.querySelectorAll(".check-item.open").forEach(i => i.classList.remove("open"));
-      wrapper.classList.toggle("open");
-    });
+    if (e.target.tagName === "INPUT") return; // ignore checkbox clicks
+
+    const isOpen = wrapper.classList.contains("open");
+
+    // close all items
+    document.querySelectorAll(".check-item.open").forEach(i => i.classList.remove("open"));
+
+    // toggle this one if it was closed
+    if (!isOpen) {
+        wrapper.classList.add("open");
+    }
+});
+
 
     checklistContainer.appendChild(wrapper);
   });
@@ -236,7 +245,7 @@ function setupFilterPanel() {
   });
 }
 
-/* ---------------- Admin Menu ---------------- */
+/* ---------------- Admin Toggle ---------------- */
 
 const adminToggleBtn = document.getElementById("admin-menu-toggle");
 const adminLoginForm = document.getElementById("admin-login");

@@ -3,6 +3,11 @@
     margin-top: 1rem;
 }
 
+.check-item, .check-label, .check-description {
+    font-family: "Merienda", cursive;
+}
+
+
 .check-item {
     position: relative;
     display: flex;
@@ -75,6 +80,9 @@ body.admin-mode .check-item input[type="checkbox"] {
     opacity: 1;
 }
 
+.check-item.checked .check-label{
+    text-decoration: line-through;
+}
 
 /* make the content above the overlay */
 .check-item > * {

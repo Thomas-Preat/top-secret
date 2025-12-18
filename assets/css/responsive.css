@@ -32,4 +32,18 @@
     .nav-toggle {
         display: block;
     }
+
+    /* Admin button styling inside nav-menu */
+    .nav-menu .nav-admin {
+        display: flex;
+        justify-content: flex-end; /* push button to the right */
+        padding: 0.2em 1em;
+        font-size: 5px;
+        border-radius: 0;
+        background: var(--accent-transparent);
+    }
+
+    .nav-menu .nav-admin .admin-toggle {
+        margin-left: auto; /* ensures it stays on the far right */
+    }
 }

@@ -10,9 +10,6 @@
     <header class="header-banner">
         <h1 class="logo">Thomas Préat</h1>
 
-        <button id="admin-menu-toggle" style="position:fixed;bottom:10px;right:10px;">⚙️</button>
-
-
         <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Ouvrir le menu">
             <span class="bar"></span><span class="bar"></span><span class="bar"></span>
         </button>
@@ -22,16 +19,18 @@
             <a href="heures.html">Heures</a>
             <a href="#">Contact</a>
 
+            <!-- Admin menu item -->
+            <div class="nav-admin">
+                <button id="admin-menu-toggle" class="admin-toggle">Admin ⚙️</button>
+                <div id="admin-login" class="admin-login" hidden>
+                    <input type="text" id="admin-username" placeholder="Name">
+                    <input type="password" id="admin-password" placeholder="Password">
+                    <button id="loginBtn">Login</button>
+                    <p id="admin-login-msg" style="color:red;font-size:0.85rem;"></p>
+                </div>
+            </div>
         </nav>
     </header>
-
-<div id="admin-login" style="display:none;position:fixed;bottom:50px;right:10px;background:#111;padding:1rem;border-radius:6px;color:white;z-index:1000;">
-    <input type="text" id="admin-username" placeholder="Name">
-    <input type="password" id="admin-password" placeholder="Password">
-    <button id="loginBtn">Login</button>
-    <p id="admin-login-msg" style="color:red;font-size:0.85rem;"></p>
-</div>
-
 
 <div class="check-controls">
     <input

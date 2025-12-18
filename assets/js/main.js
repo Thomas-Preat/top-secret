@@ -241,16 +241,26 @@ function setupFilterPanel() {
 const adminToggleBtn = document.getElementById("admin-menu-toggle");
 const adminLoginForm = document.getElementById("admin-login");
 
-adminToggleBtn.addEventListener("click", () => {
-    adminLoginForm.style.display = adminLoginForm.style.display === "block" ? "none" : "block";
+adminToggleBtn.addEventListener("click", e => {
+    e.stopPropagation();
+    adminLoginForm.classList.toggle("active");
 });
+
+// Close when clicking outside
+document.addEventListener("click", () => {
+    adminLoginForm.classList.remove("active");
+});
+
+// Prevent clicks inside form from closing
+adminLoginForm.addEventListener("click", e => e.stopPropagation());
 
 /* ---------------- Login logic ---------------- */
 
 const loginBtn = document.getElementById("loginBtn");
-const usernameInput = document.getElementById("username");
-const passwordInput = document.getElementById("password");
-const loginMsg = document.getElementById("loginMsg");
+const usernameInput = document.getElementById("admin-username");
+const passwordInput = document.getElementById("admin-password");
+const loginMsg = document.getElementById("admin-login-msg");
+
 
 loginBtn.addEventListener("click", async () => {
     const email = usernameInput.value;

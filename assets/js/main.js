@@ -33,6 +33,14 @@ const IMAGE_MAP = {
   fireplace: {
     src: "../../assets/images/fireplace.jpg",
     position: "center bottom"
+  },
+  outside: {
+    src: "../../assets/images/outside.jpg",
+    position: "50% 30%"
+  },
+  cooking: {
+    src: "../../assets/images/cooking.jpg",
+    position: "50% 70%"
   }
 };
 

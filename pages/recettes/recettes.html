@@ -1,71 +1,101 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TestChecklist</title>
-    <link rel="stylesheet" href="../../assets/css/main.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Merienda:wght@300..900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recettes</title>
+  <link rel="stylesheet" href="../../assets/css/main.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Merienda:wght@300..900&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header class="header-banner">
-        <h1 class="logo">Thomas Préat</h1>
+  <header class="header-banner">
+    <h1 class="logo">Thomas Préat</h1>
 
-        <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Ouvrir le menu">
-            <span class="bar"></span><span class="bar"></span><span class="bar"></span>
-        </button>
-        <nav id="primary-nav" class="nav-menu">
-            <a href="../../index.html">Accueil</a>
-            <a href="recettes.html">Recettes</a>
-            <a href="../coupons/coupons.html">Coupons</a>
+    <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Ouvrir le menu">
+      <span class="bar"></span><span class="bar"></span><span class="bar"></span>
+    </button>
 
-            <!-- Admin menu item -->
-            <div class="nav-admin">
-                <button id="admin-menu-toggle" class="admin-toggle">Admin ⚙️</button>
-                <div id="admin-login" class="admin-login" hidden>
-                    <input type="text" id="admin-username" placeholder="Name">
-                    <input type="password" id="admin-password" placeholder="Password">
-                    <button id="loginBtn">Login</button>
-                    <p id="admin-login-msg" style="color:red;font-size:0.85rem;"></p>
-                </div>
-            </div>
-        </nav>
-    </header>
+    <nav id="primary-nav" class="nav-menu">
+      <a href="../../index.html">Accueil</a>
+      <a href="../projets/projets.html">Projets</a>
+      <a href="recettes.html">Recettes</a>
+      <a href="#">Contact</a>
 
-<div class="recipe-controls">
-  <input type="search" id="recipe-search" placeholder="Rechercher..." />
+      <div class="nav-admin">
+        <button id="admin-menu-toggle" class="admin-toggle">Admin ⚙️</button>
+        <div id="admin-login" class="admin-login" hidden>
+          <input type="text" id="admin-username" placeholder="Name">
+          <input type="password" id="admin-password" placeholder="Password">
+          <button id="loginBtn">Login</button>
+          <p id="admin-login-msg" style="color:red;font-size:0.85rem;"></p>
+        </div>
+      </div>
+    </nav>
+  </header>
 
-  <button id="recipe-filter-toggle">☰</button>
-
-  <div id="recipe-filter-panel" hidden>
-    <button data-sort="name">Nom A-Z</button>
-    <button data-sort="prepTime">Temps</button>
-    <button data-sort="price">Prix</button>
+  <!-- Admin editor -->
+  <div id="admin-editor" style="display:none; flex-direction: column; gap: 0.5rem; padding: 1rem; background:#111; color:white; max-width:600px; margin:1rem auto; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
+    <select id="admin-select">
+      <option value="">-- Select recipe --</option>
+    </select>
+    <input type="text" id="admin-name" placeholder="Name">
+    <input type="text" id="admin-photo" placeholder="Photo URL">
+    <input type="text" id="admin-type" placeholder="Type">
+    <input type="number" id="admin-protein" placeholder="Protein (g)">
+    <input type="text" id="admin-prep" placeholder="Prep Time">
+    <input type="text" id="admin-link" placeholder="Link to recipe">
+    <input type="text" id="admin-notes" placeholder="Notes">
+    <input type="text" id="admin-price" placeholder="Price">
+    <button id="admin-create">Create</button>
+    <button id="admin-update">Update</button>
+    <button id="admin-delete">Delete</button>
   </div>
-</div>
 
-<table id="recipe-table">
-  <thead>
-    <tr>
-      <th>Nom</th>
-      <th>Photo</th>
-      <th>Type</th>
-      <th>Protéine</th>
-      <th>Temps</th>
-      <th>Lien</th>
-      <th>Notes</th>
-      <th>Prix</th>
-    </tr>
-  </thead>
-  <tbody></tbody>
-</table>
+  <!-- Search & Filters -->
+  <div class="check-controls" style="display:flex; gap:1rem; align-items:center; margin:1rem;">
+    <input type="search" id="recipe-search" placeholder="Rechercher..." autocomplete="off">
 
-<!-- Admin editor -->
-<div id="recipe-editor"></div>
+    <button id="filter-toggle" aria-label="Filtres">☰</button>
 
-<script type="module" src="../../assets/js/main.js"></script>
-<script type="module" src="../../assets/js/recipes.js"></script>
+    <div id="filter-panel" hidden style="position:absolute; top:110%; right:0; width:220px; background:#111; border:1px solid #333; border-radius:10px; padding:0.75rem; box-shadow:0 10px 30px rgba(0,0,0,0.6); z-index:1000;">
+      <div class="filter-section">
+        <h4>Trier</h4>
+        <button data-sort="default">A-Z</button>
+        <button data-sort="az">A-Z</button>
+        <button data-sort="za">Z-A</button>
+        <button data-sort="prep">Prep Time</button>
+        <button data-sort="protein">Protein</button>
+      </div>
+
+      <div class="filter-section">
+        <h4>Tags</h4>
+        <div id="tag-filters"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Recipes table -->
+  <section>
+    <table style="width:100%; border-collapse:collapse;">
+      <thead>
+        <tr style="background:#222; color:#fff;">
+          <th>Name</th>
+          <th>Photo</th>
+          <th>Type</th>
+          <th>Protein</th>
+          <th>Prep Time</th>
+          <th>Link</th>
+          <th>Notes</th>
+          <th>Price</th>
+        </tr>
+      </thead>
+      <tbody id="recipes-body"></tbody>
+    </table>
+  </section>
+
+  <script type="module" src="../../assets/js/main.js"></script>
+  <script type="module" src="../../assets/js/recipes.js"></script>
 </body>
 </html>

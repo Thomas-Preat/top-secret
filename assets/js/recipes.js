@@ -6,178 +6,286 @@ import {
   deleteDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
 import { db } from "./firebase.js";
 
-/* ---------------- State ---------------- */
-
-let recipes = [];
-let sortKey = "name";
-let sortDir = "asc";
-let selectedId = null;
+/* ---------------- Helpers ---------------- */
+const $ = (sel, ctx = document) => ctx.querySelector(sel);
+const $all = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
 /* ---------------- Elements ---------------- */
+const recipesContainer = $("#recipes");
+const searchInput = $("#recipe-search");
+const filterToggle = $("#filter-toggle");
+const filterPanel = $("#filter-panel");
+const typeContainer = $("#type-filters");
+const proteinContainer = $("#protein-filters");
 
-const tbody = document.getElementById("recipes-body");
+/* ---------------- State ---------------- */
+let recipes = [];
+let searchQuery = "";
+let activeTypes = new Set();
+let activeProteins = new Set();
+let sortMode = "default";
 
-const adminEditor = document.getElementById("admin-editor");
-const selectEl = document.getElementById("admin-select");
-
-const nameInput = document.getElementById("admin-name");
-const photoInput = document.getElementById("admin-photo");
-const typeInput = document.getElementById("admin-type");
-const proteinInput = document.getElementById("admin-protein");
-const prepTimeInput = document.getElementById("admin-preptime");
-const linkInput = document.getElementById("admin-link");
-const notesInput = document.getElementById("admin-notes");
-const priceInput = document.getElementById("admin-price");
-
-const createBtn = document.getElementById("admin-create");
-const updateBtn = document.getElementById("admin-update");
-const deleteBtn = document.getElementById("admin-delete");
-
-/* ---------------- Load ---------------- */
-
+/* ---------------- Load data ---------------- */
 async function loadRecipes() {
   recipes = [];
-
-  const snap = await getDocs(collection(db, "recipeList"));
-  snap.forEach(d => {
-    recipes.push({ id: d.id, ...d.data() });
+  const snapshot = await getDocs(collection(db, "recipeList"));
+  snapshot.forEach(docSnap => {
+    recipes.push({ id: docSnap.id, ...docSnap.data() });
   });
 
-  buildSelect();
-  renderTable();
+  buildFilters();
+  renderRecipes();
+  populateAdminSelect();
 }
 
 await loadRecipes();
 
-/* ---------------- Render ---------------- */
+/* ---------------- Filtering ---------------- */
+function filterRecipes(items) {
+  return items.filter(item => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      !q ||
+      item.name.toLowerCase().includes(q) ||
+      (item.notes || "").toLowerCase().includes(q);
 
-function renderTable() {
-  tbody.innerHTML = "";
+    const matchesType =
+      activeTypes.size === 0 || (item.type || []).some(t => activeTypes.has(t));
 
-  const sorted = sortRecipes(recipes);
+    const matchesProtein =
+      activeProteins.size === 0 || (item.protein || []).some(p => activeProteins.has(p));
 
-  sorted.forEach(r => {
-    const tr = document.createElement("tr");
-
-    tr.innerHTML = `
-      <td>${r.name}</td>
-      <td>${r.photo ? `<img src="${r.photo}" class="recipe-img">` : ""}</td>
-      <td>${r.type || ""}</td>
-      <td>${r.protein || ""}</td>
-      <td>${r.prepTime ? r.prepTime + " min" : ""}</td>
-      <td>${r.link ? `<a href="${r.link}" target="_blank">Voir</a>` : ""}</td>
-      <td>${r.notes || ""}</td>
-      <td>${r.price != null ? r.price.toFixed(2) + " €" : ""}</td>
-    `;
-
-    tbody.appendChild(tr);
+    return matchesSearch && matchesType && matchesProtein;
   });
 }
 
 /* ---------------- Sorting ---------------- */
-
-function sortRecipes(list) {
-  return list.slice().sort((a, b) => {
-    const A = a[sortKey];
-    const B = b[sortKey];
-
-    if (A == null) return 1;
-    if (B == null) return -1;
-
-    if (typeof A === "number") {
-      return sortDir === "asc" ? A - B : B - A;
-    }
-
-    return sortDir === "asc"
-      ? String(A).localeCompare(String(B), "fr", { sensitivity: "base" })
-      : String(B).localeCompare(String(A), "fr", { sensitivity: "base" });
+function sortRecipes(items) {
+  return items.slice().sort((a, b) => {
+    if (sortMode === "name-asc") return a.name.localeCompare(b.name);
+    if (sortMode === "name-desc") return b.name.localeCompare(a.name);
+    if (sortMode === "prep-asc") return a.prepTime.localeCompare(b.prepTime);
+    if (sortMode === "prep-desc") return b.prepTime.localeCompare(a.prepTime);
+    return 0;
   });
 }
 
-document.querySelectorAll("[data-sort]").forEach(btn => {
-  btn.addEventListener("click", () => {
-    sortKey = btn.dataset.sort;
-    sortDir = btn.dataset.dir || "asc";
-    renderTable();
+/* ---------------- Render ---------------- */
+function renderRecipes() {
+  if (!recipesContainer) return;
+  recipesContainer.innerHTML = "";
+
+  const filtered = filterRecipes(recipes);
+  const sorted = sortRecipes(filtered);
+
+  sorted.forEach((item, index) => {
+    const wrapper = document.createElement("div");
+    wrapper.className = "recipe-card";
+
+    // Optionally expand first card
+    if (index === 0) wrapper.classList.add("open");
+
+    // Top row: Name + Photo
+    const header = document.createElement("div");
+    header.className = "recipe-header";
+
+    const img = document.createElement("img");
+    img.src = item.photo || "";
+    img.alt = item.name;
+    img.className = "recipe-photo";
+
+    const name = document.createElement("div");
+    name.className = "recipe-name";
+    name.textContent = item.name;
+
+    const tags = document.createElement("div");
+    tags.className = "recipe-tags";
+    (item.type || []).forEach(t => {
+      const span = document.createElement("span");
+      span.className = "tag type-tag";
+      span.textContent = t;
+      tags.appendChild(span);
+    });
+    (item.protein || []).forEach(p => {
+      const span = document.createElement("span");
+      span.className = "tag protein-tag";
+      span.textContent = p;
+      tags.appendChild(span);
+    });
+
+    header.append(img, name, tags);
+    wrapper.appendChild(header);
+
+    // Hidden details
+    const details = document.createElement("div");
+    details.className = "recipe-details";
+    details.innerHTML = `
+      <div><strong>Prep Time:</strong> ${item.prepTime || "-"}</div>
+      <div><strong>Price:</strong> ${item.price || "-"}</div>
+      <div><strong>Link:</strong> ${
+        item.link ? `<a href="${item.link}" target="_blank">View Recipe</a>` : "-"
+      }</div>
+      <div><strong>Notes:</strong> ${item.notes || "-"}</div>
+    `;
+    wrapper.appendChild(details);
+
+    // Toggle details
+    header.addEventListener("click", () => {
+      wrapper.classList.toggle("open");
+    });
+
+    recipesContainer.appendChild(wrapper);
   });
-});
+}
 
-/* ---------------- Admin ---------------- */
+/* ---------------- Search ---------------- */
+if (searchInput) {
+  searchInput.addEventListener("input", e => {
+    searchQuery = e.target.value.trim();
+    renderRecipes();
+  });
+}
 
-function buildSelect() {
-  selectEl.innerHTML = `<option value="">-- Select recipe --</option>`;
+/* ---------------- Filters ---------------- */
+function buildFilters() {
+  if (typeContainer) typeContainer.innerHTML = "";
+  if (proteinContainer) proteinContainer.innerHTML = "";
+  activeTypes.clear();
+  activeProteins.clear();
 
+  const types = new Set();
+  const proteins = new Set();
   recipes.forEach(r => {
-    const opt = document.createElement("option");
-    opt.value = r.id;
-    opt.textContent = r.name;
-    selectEl.appendChild(opt);
+    (r.type || []).forEach(t => types.add(t));
+    (r.protein || []).forEach(p => proteins.add(p));
+  });
+
+  types.forEach(t => {
+    const btn = document.createElement("button");
+    btn.className = "tag-btn";
+    btn.textContent = t;
+    btn.addEventListener("click", () => {
+      if (activeTypes.has(t)) {
+        activeTypes.delete(t);
+        btn.classList.remove("active");
+      } else {
+        activeTypes.add(t);
+        btn.classList.add("active");
+      }
+      renderRecipes();
+    });
+    typeContainer.appendChild(btn);
+  });
+
+  proteins.forEach(p => {
+    const btn = document.createElement("button");
+    btn.className = "tag-btn";
+    btn.textContent = p;
+    btn.addEventListener("click", () => {
+      if (activeProteins.has(p)) {
+        activeProteins.delete(p);
+        btn.classList.remove("active");
+      } else {
+        activeProteins.add(p);
+        btn.classList.add("active");
+      }
+      renderRecipes();
+    });
+    proteinContainer.appendChild(btn);
   });
 }
 
-selectEl.addEventListener("change", () => {
-  selectedId = selectEl.value;
-  const r = recipes.find(i => i.id === selectedId);
-  if (!r) return;
-
-  nameInput.value = r.name || "";
-  photoInput.value = r.photo || "";
-  typeInput.value = r.type || "";
-  proteinInput.value = r.protein || "";
-  prepTimeInput.value = r.prepTime || "";
-  linkInput.value = r.link || "";
-  notesInput.value = r.notes || "";
-  priceInput.value = r.price || "";
-});
-
-/* ---------------- CRUD ---------------- */
-
-createBtn.addEventListener("click", async () => {
-  await addDoc(collection(db, "recipes"), {
-    name: nameInput.value,
-    photo: photoInput.value,
-    type: typeInput.value,
-    protein: proteinInput.value,
-    prepTime: Number(prepTimeInput.value),
-    link: linkInput.value,
-    notes: notesInput.value,
-    price: Number(priceInput.value)
+/* ---------------- Sort Menu ---------------- */
+if (filterToggle && filterPanel) {
+  filterToggle.addEventListener("click", e => {
+    e.stopPropagation();
+    filterPanel.hidden = !filterPanel.hidden;
   });
-
-  await loadRecipes();
-});
-
-updateBtn.addEventListener("click", async () => {
-  if (!selectedId) return;
-
-  await updateDoc(doc(db, "recipes", selectedId), {
-    name: nameInput.value,
-    photo: photoInput.value,
-    type: typeInput.value,
-    protein: proteinInput.value,
-    prepTime: Number(prepTimeInput.value),
-    link: linkInput.value,
-    notes: notesInput.value,
-    price: Number(priceInput.value)
-  });
-
-  await loadRecipes();
-});
-
-deleteBtn.addEventListener("click", async () => {
-  if (!selectedId) return;
-
-  await deleteDoc(doc(db, "recipes", selectedId));
-  selectedId = null;
-
-  await loadRecipes();
-});
-
-/* ---------------- Admin visibility ---------------- */
-
-if (!document.body.classList.contains("admin-mode")) {
-  adminEditor.style.display = "none";
+  filterPanel.addEventListener("click", e => e.stopPropagation());
+  document.addEventListener("click", () => (filterPanel.hidden = true));
 }
+
+$all("[data-sort]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    sortMode = btn.dataset.sort;
+    $all("[data-sort]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderRecipes();
+  });
+});
+
+/* ---------------- Admin Editor ---------------- */
+function populateAdminSelect() {
+  const select = $("#admin-select");
+  if (!select) return;
+
+  select.innerHTML = `<option value="">-- Select recipe --</option>`;
+  recipes.forEach(r => {
+    const option = document.createElement("option");
+    option.value = r.id;
+    option.textContent = r.name;
+    select.appendChild(option);
+  });
+}
+
+const adminSelect = $("#admin-select");
+if (adminSelect) {
+  adminSelect.addEventListener("change", () => {
+    const selectedId = adminSelect.value;
+    const recipe = recipes.find(r => r.id === selectedId);
+    if (!recipe) return;
+
+    $("#admin-name").value = recipe.name;
+    $("#admin-photo").value = recipe.photo || "";
+    $("#admin-type").value = (recipe.type || []).join(",");
+    $("#admin-protein").value = (recipe.protein || []).join(",");
+    $("#admin-prep").value = recipe.prepTime || "";
+    $("#admin-link").value = recipe.link || "";
+    $("#admin-notes").value = recipe.notes || "";
+    $("#admin-price").value = recipe.price || "";
+  });
+}
+
+/* ---------- Admin CRUD ---------- */
+$("#admin-create")?.addEventListener("click", async () => {
+  const newRecipe = {
+    name: $("#admin-name").value,
+    photo: $("#admin-photo").value,
+    type: $("#admin-type").value.split(",").map(t => t.trim()),
+    protein: $("#admin-protein").value.split(",").map(p => p.trim()),
+    prepTime: $("#admin-prep").value,
+    link: $("#admin-link").value,
+    notes: $("#admin-notes").value,
+    price: $("#admin-price").value
+  };
+  await addDoc(collection(db, "recipeList"), newRecipe);
+  await loadRecipes();
+});
+
+$("#admin-update")?.addEventListener("click", async () => {
+  const selectedId = adminSelect.value;
+  if (!selectedId) return;
+  const recipe = recipes.find(r => r.id === selectedId);
+  if (!recipe) return;
+
+  await updateDoc(doc(db, "recipeList", selectedId), {
+    name: $("#admin-name").value,
+    photo: $("#admin-photo").value,
+    type: $("#admin-type").value.split(",").map(t => t.trim()),
+    protein: $("#admin-protein").value.split(",").map(p => p.trim()),
+    prepTime: $("#admin-prep").value,
+    link: $("#admin-link").value,
+    notes: $("#admin-notes").value,
+    price: $("#admin-price").value
+  });
+  await loadRecipes();
+});
+
+$("#admin-delete")?.addEventListener("click", async () => {
+  const selectedId = adminSelect.value;
+  if (!selectedId) return;
+  await deleteDoc(doc(db, "recipeList", selectedId));
+  await loadRecipes();
+});

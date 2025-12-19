@@ -3,8 +3,10 @@ import {
   getDocs,
   updateDoc,
   doc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";0
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 import { db } from "./firebase.js";
+
 /* ---------------- Images ---------------- */
 
 const IMAGE_MAP = {
@@ -13,23 +15,17 @@ const IMAGE_MAP = {
   cooking: { src: "../../assets/images/cooking.jpg", position: "50% 70%" }
 };
 
-/* ---------------- DOM helpers ---------------- */
+/* ---------------- Helpers ---------------- */
 
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $all = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
 /* ---------------- Elements ---------------- */
 
-const checklistContainer = document.getElementById("checklist");
-
-const searchInput = document.getElementById("check-search");
-if (searchInput) {
-  searchInput.addEventListener("input", e => {
-    searchQuery = e.target.value.trim().toLowerCase();
-    renderChecklist();
-  });
-}
-
+const checklistContainer = $("#checklist");
+const searchInput = $("#check-search");
+const filterToggle = $("#filter-toggle");
+const filterPanel = $("#filter-panel");
 const tagContainer = $("#tag-filters");
 
 /* ---------------- State ---------------- */
@@ -49,11 +45,11 @@ async function loadChecklist() {
     checklistItems.push({ id: docSnap.id, ...docSnap.data() });
   });
 
+  buildTagFilters();
   renderChecklist();
 }
 
 await loadChecklist();
-
 
 /* ---------------- Filtering ---------------- */
 
@@ -86,11 +82,6 @@ function sortItems(items) {
       return b.label.localeCompare(a.label, "fr", { sensitivity: "base" });
     }
 
-    if (sortMode === "checked") {
-      if (a.checked !== b.checked) return a.checked ? 1 : -1;
-      return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
-    }
-
     if (a.checked !== b.checked) return a.checked ? 1 : -1;
     return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
   });
@@ -98,8 +89,9 @@ function sortItems(items) {
 
 /* ---------------- Render ---------------- */
 
-function renderChecklist(db) {
-  console.log("render loaded");
+function renderChecklist() {
+  if (!checklistContainer) return;
+
   checklistContainer.innerHTML = "";
 
   const filtered = filterItems(checklistItems);
@@ -144,7 +136,7 @@ function renderChecklist(db) {
       await updateDoc(doc(db, "checklist", item.id), {
         checked: checkbox.checked
       });
-      renderChecklist(db);
+      renderChecklist();
     });
 
     wrapper.addEventListener("click", e => {
@@ -161,14 +153,18 @@ function renderChecklist(db) {
 
 /* ---------------- Search ---------------- */
 
-searchInput.addEventListener("input", e => {
-  searchQuery = e.target.value.trim();
-  renderChecklist(window.db);
-});
+if (searchInput) {
+  searchInput.addEventListener("input", e => {
+    searchQuery = e.target.value.trim();
+    renderChecklist();
+  });
+}
 
 /* ---------------- Tags ---------------- */
 
 function buildTagFilters() {
+  if (!tagContainer) return;
+
   tagContainer.innerHTML = "";
   activeTags.clear();
 
@@ -188,20 +184,35 @@ function buildTagFilters() {
         activeTags.add(tag);
         btn.classList.add("active");
       }
-      renderChecklist(window.db);
+      renderChecklist();
     });
 
     tagContainer.appendChild(btn);
   });
 }
 
-/* ---------------- Sorting UI ---------------- */
+/* ---------------- Sort menu ---------------- */
+
+if (filterToggle && filterPanel) {
+  filterToggle.addEventListener("click", e => {
+    e.stopPropagation();
+    filterPanel.hidden = !filterPanel.hidden;
+  });
+
+  filterPanel.addEventListener("click", e => e.stopPropagation());
+
+  document.addEventListener("click", () => {
+    filterPanel.hidden = true;
+  });
+}
 
 $all("[data-sort]").forEach(btn => {
   btn.addEventListener("click", () => {
     sortMode = btn.dataset.sort;
+
     $all("[data-sort]").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-    renderChecklist(window.db);
+
+    renderChecklist();
   });
 });

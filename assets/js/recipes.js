@@ -27,12 +27,24 @@ let activeTypes = new Set();
 let activeProteins = new Set();
 let sortMode = "default";
 
-/* ---------------- Load data ---------------- */
+/* ---------------- Load Recipes ---------------- */
 async function loadRecipes() {
   recipes = [];
   const snapshot = await getDocs(collection(db, "recipeList"));
+
   snapshot.forEach(docSnap => {
-    recipes.push({ id: docSnap.id, ...docSnap.data() });
+    const data = docSnap.data();
+    recipes.push({
+      id: docSnap.id,
+      name: data.name || "Unnamed Recipe",
+      type: Array.isArray(data.type) ? data.type : [],
+      protein: Array.isArray(data.protein) ? data.protein : [],
+      photo: data.photo || "",
+      prepTime: data.prepTime || "",
+      link: data.link || "",
+      notes: data.notes || "",
+      price: data.price || ""
+    });
   });
 
   buildFilters();
@@ -40,9 +52,7 @@ async function loadRecipes() {
   populateAdminSelect();
 }
 
-await loadRecipes();
-
-/* ---------------- Filtering ---------------- */
+/* ---------------- Filter & Search ---------------- */
 function filterRecipes(items) {
   return items.filter(item => {
     const q = searchQuery.toLowerCase();
@@ -87,7 +97,7 @@ function renderRecipes() {
     // Optionally expand first card
     if (index === 0) wrapper.classList.add("open");
 
-    // Top row: Name + Photo
+    // Header: Name + Photo
     const header = document.createElement("div");
     header.className = "recipe-header";
 
@@ -131,16 +141,17 @@ function renderRecipes() {
     `;
     wrapper.appendChild(details);
 
-    // Toggle details
-    header.addEventListener("click", () => {
-      wrapper.classList.toggle("open");
-    });
+    header.addEventListener("click", () => wrapper.classList.toggle("open"));
 
     recipesContainer.appendChild(wrapper);
   });
 }
 
-/* ---------------- Search ---------------- */
+/* ---------------- Event Listeners ---------------- */
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadRecipes();
+});
+
 if (searchInput) {
   searchInput.addEventListener("input", e => {
     searchQuery = e.target.value.trim();
@@ -157,9 +168,10 @@ function buildFilters() {
 
   const types = new Set();
   const proteins = new Set();
+
   recipes.forEach(r => {
-    (r.type || []).forEach(t => types.add(t));
-    (r.protein || []).forEach(p => proteins.add(p));
+    (Array.isArray(r.type) ? r.type : []).forEach(t => types.add(t));
+    (Array.isArray(r.protein) ? r.protein : []).forEach(p => proteins.add(p));
   });
 
   types.forEach(t => {
@@ -248,18 +260,28 @@ if (adminSelect) {
   });
 }
 
-/* ---------- Admin CRUD ---------- */
+/* ---------------- Admin CRUD ---------------- */
 $("#admin-create")?.addEventListener("click", async () => {
   const newRecipe = {
-    name: $("#admin-name").value,
-    photo: $("#admin-photo").value,
-    type: $("#admin-type").value.split(",").map(t => t.trim()),
-    protein: $("#admin-protein").value.split(",").map(p => p.trim()),
-    prepTime: $("#admin-prep").value,
-    link: $("#admin-link").value,
-    notes: $("#admin-notes").value,
-    price: $("#admin-price").value
+    name: $("#admin-name").value.trim(),
+    type: $("#admin-type").value
+      ? $("#admin-type").value.split(",").map(t => t.trim())
+      : [],
+    protein: $("#admin-protein").value
+      ? $("#admin-protein").value.split(",").map(p => p.trim())
+      : [],
+    photo: $("#admin-photo").value.trim() || "",
+    prepTime: $("#admin-prep").value.trim() || "",
+    link: $("#admin-link").value.trim() || "",
+    notes: $("#admin-notes").value.trim() || "",
+    price: $("#admin-price").value.trim() || ""
   };
+
+  if (!newRecipe.name || !newRecipe.type.length) {
+    alert("Name and Type are required.");
+    return;
+  }
+
   await addDoc(collection(db, "recipeList"), newRecipe);
   await loadRecipes();
 });
@@ -272,14 +294,17 @@ $("#admin-update")?.addEventListener("click", async () => {
 
   await updateDoc(doc(db, "recipeList", selectedId), {
     name: $("#admin-name").value,
-    photo: $("#admin-photo").value,
     type: $("#admin-type").value.split(",").map(t => t.trim()),
-    protein: $("#admin-protein").value.split(",").map(p => p.trim()),
+    protein: $("#admin-protein").value
+      ? $("#admin-protein").value.split(",").map(p => p.trim())
+      : [],
+    photo: $("#admin-photo").value,
     prepTime: $("#admin-prep").value,
     link: $("#admin-link").value,
     notes: $("#admin-notes").value,
     price: $("#admin-price").value
   });
+
   await loadRecipes();
 });
 

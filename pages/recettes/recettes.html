@@ -16,11 +16,10 @@
     <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Ouvrir le menu">
       <span class="bar"></span><span class="bar"></span><span class="bar"></span>
     </button>
-
     <nav id="primary-nav" class="nav-menu">
       <a href="../../index.html">Accueil</a>
       <a href="../projets/projets.html">Projets</a>
-      <a href="recettes.html">Recettes</a>
+      <a href="heures.html">Heures</a>
       <a href="#">Contact</a>
 
       <div class="nav-admin">
@@ -36,64 +35,47 @@
   </header>
 
   <!-- Admin editor -->
-  <div id="admin-editor" style="display:none; flex-direction: column; gap: 0.5rem; padding: 1rem; background:#111; color:white; max-width:600px; margin:1rem auto; border-radius:6px; box-shadow:0 4px 12px rgba(0,0,0,0.5);">
-    <select id="admin-select">
-      <option value="">-- Select recipe --</option>
-    </select>
-    <input type="text" id="admin-name" placeholder="Name">
-    <input type="text" id="admin-photo" placeholder="Photo URL">
-    <input type="text" id="admin-type" placeholder="Type">
-    <input type="number" id="admin-protein" placeholder="Protein (g)">
-    <input type="text" id="admin-prep" placeholder="Prep Time">
-    <input type="text" id="admin-link" placeholder="Link to recipe">
-    <input type="text" id="admin-notes" placeholder="Notes">
-    <input type="text" id="admin-price" placeholder="Price">
-    <button id="admin-create">Create</button>
-    <button id="admin-update">Update</button>
-    <button id="admin-delete">Delete</button>
+  <div id="admin-editor" style="display:none;">
+    <select id="admin-select"></select>
+    <input type="text" id="admin-name" placeholder="Nom (obligatoire)">
+    <input type="text" id="admin-photo" placeholder="Photo URL (optionnel)">
+    <input type="text" id="admin-type" placeholder="Type (obligatoire, séparé par ,)">
+    <input type="text" id="admin-protein" placeholder="Protéine (optionnel, séparé par ,)">
+    <input type="text" id="admin-prep" placeholder="Temps préparation (optionnel)">
+    <input type="text" id="admin-link" placeholder="Lien recette (optionnel)">
+    <input type="text" id="admin-notes" placeholder="Notes (optionnel)">
+    <input type="text" id="admin-price" placeholder="Prix (optionnel)">
+    <button id="admin-create">Créer</button>
+    <button id="admin-update">Mettre à jour</button>
+    <button id="admin-delete">Supprimer</button>
   </div>
 
-  <!-- Search & Filters -->
-  <div class="check-controls" style="display:flex; gap:1rem; align-items:center; margin:1rem;">
-    <input type="search" id="recipe-search" placeholder="Rechercher..." autocomplete="off">
+  <!-- Filters and search -->
+  <div class="check-controls">
+    <input type="search" id="recipe-search" placeholder="Rechercher...">
 
     <button id="filter-toggle" aria-label="Filtres">☰</button>
-
-    <div id="filter-panel" hidden style="position:absolute; top:110%; right:0; width:220px; background:#111; border:1px solid #333; border-radius:10px; padding:0.75rem; box-shadow:0 10px 30px rgba(0,0,0,0.6); z-index:1000;">
+    <div id="filter-panel" hidden>
+      <div class="filter-section">
+        <h4>Type</h4>
+        <div id="type-filters"></div>
+      </div>
+      <div class="filter-section">
+        <h4>Protéine</h4>
+        <div id="protein-filters"></div>
+      </div>
       <div class="filter-section">
         <h4>Trier</h4>
-        <button data-sort="default">A-Z</button>
-        <button data-sort="az">A-Z</button>
-        <button data-sort="za">Z-A</button>
-        <button data-sort="prep">Prep Time</button>
-        <button data-sort="protein">Protein</button>
-      </div>
-
-      <div class="filter-section">
-        <h4>Tags</h4>
-        <div id="tag-filters"></div>
+        <button data-sort="name-asc">Nom A → Z</button>
+        <button data-sort="name-desc">Nom Z → A</button>
+        <button data-sort="prep-asc">Préparation ↑</button>
+        <button data-sort="prep-desc">Préparation ↓</button>
       </div>
     </div>
   </div>
 
-  <!-- Recipes table -->
-  <section>
-    <table style="width:100%; border-collapse:collapse;">
-      <thead>
-        <tr style="background:#222; color:#fff;">
-          <th>Name</th>
-          <th>Photo</th>
-          <th>Type</th>
-          <th>Protein</th>
-          <th>Prep Time</th>
-          <th>Link</th>
-          <th>Notes</th>
-          <th>Price</th>
-        </tr>
-      </thead>
-      <tbody id="recipes-body"></tbody>
-    </table>
-  </section>
+  <!-- Recipes container -->
+  <section id="recipes"></section>
 
   <script type="module" src="../../assets/js/main.js"></script>
   <script type="module" src="../../assets/js/recipes.js"></script>

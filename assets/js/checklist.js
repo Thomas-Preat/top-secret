@@ -2,96 +2,89 @@ import {
   collection,
   getDocs,
   updateDoc,
+  addDoc,
+  deleteDoc,
   doc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 import { db } from "./firebase.js";
 
-/* ---------------- Images ---------------- */
-
-const IMAGE_MAP = {
-  bed: { src: "/assets/images/bed.jpg", position: "50% 50%" },
-  outside: { src: "../../assets/images/outside.jpg", position: "50% 30%" },
-  cooking: { src: "../../assets/images/cooking.jpg", position: "50% 70%" }
-};
-
 /* ---------------- Helpers ---------------- */
-
 const $ = (sel, ctx = document) => ctx.querySelector(sel);
 const $all = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
 
 /* ---------------- Elements ---------------- */
-
 const checklistContainer = $("#checklist");
 const searchInput = $("#check-search");
 const filterToggle = $("#filter-toggle");
 const filterPanel = $("#filter-panel");
 const tagContainer = $("#tag-filters");
 
-/* ---------------- State ---------------- */
+/* Admin editor inputs/buttons */
+const adminSelect = $("#admin-select");
+const adminTitle = $("#admin-title");
+const adminDesc = $("#admin-desc");
+const adminImage = $("#admin-image");
+const adminTags = $("#admin-tags");
+const createBtn = $("#admin-create");
+const updateBtn = $("#admin-update");
+const deleteBtn = $("#admin-delete");
 
+/* ---------------- Images ---------------- */
+const IMAGE_MAP = {
+  bed: { src: "/assets/images/bed.jpg", position: "50% 50%" },
+  outside: { src: "../../assets/images/outside.jpg", position: "50% 30%" },
+  cooking: { src: "../../assets/images/cooking.jpg", position: "50% 70%" }
+};
+
+/* ---------------- State ---------------- */
 let checklistItems = [];
 let searchQuery = "";
 let activeTags = new Set();
 let sortMode = "default";
 
 /* ---------------- Load data ---------------- */
-
 async function loadChecklist() {
   checklistItems = [];
-
   const snapshot = await getDocs(collection(db, "checklist"));
   snapshot.forEach(docSnap => {
     checklistItems.push({ id: docSnap.id, ...docSnap.data() });
   });
-
   buildTagFilters();
+  populateAdminSelect();
   renderChecklist();
 }
 
 await loadChecklist();
 
 /* ---------------- Filtering ---------------- */
-
 function filterItems(items) {
   return items.filter(item => {
     const q = searchQuery.toLowerCase();
-
     const matchesSearch =
       !q ||
       item.label.toLowerCase().includes(q) ||
       (item.description || "").toLowerCase().includes(q);
-
     const matchesTags =
       activeTags.size === 0 ||
       (item.tags || []).some(tag => activeTags.has(tag));
-
     return matchesSearch && matchesTags;
   });
 }
 
 /* ---------------- Sorting ---------------- */
-
 function sortItems(items) {
   return items.slice().sort((a, b) => {
-    if (sortMode === "az") {
-      return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
-    }
-
-    if (sortMode === "za") {
-      return b.label.localeCompare(a.label, "fr", { sensitivity: "base" });
-    }
-
+    if (sortMode === "az") return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
+    if (sortMode === "za") return b.label.localeCompare(a.label, "fr", { sensitivity: "base" });
     if (a.checked !== b.checked) return a.checked ? 1 : -1;
     return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
   });
 }
 
 /* ---------------- Render ---------------- */
-
 function renderChecklist() {
   if (!checklistContainer) return;
-
   checklistContainer.innerHTML = "";
 
   const filtered = filterItems(checklistItems);
@@ -105,7 +98,6 @@ function renderChecklist() {
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = item.checked;
-
     if (!document.body.classList.contains("admin-mode")) {
       checkbox.disabled = true;
       checkbox.style.display = "none";
@@ -133,15 +125,12 @@ function renderChecklist() {
 
     checkbox.addEventListener("change", async () => {
       item.checked = checkbox.checked;
-      await updateDoc(doc(db, "checklist", item.id), {
-        checked: checkbox.checked
-      });
+      await updateDoc(doc(db, "checklist", item.id), { checked: checkbox.checked });
       renderChecklist();
     });
 
     wrapper.addEventListener("click", e => {
       if (e.target.tagName === "INPUT") return;
-
       const isOpen = wrapper.classList.contains("open");
       $all(".check-item.open").forEach(i => i.classList.remove("open"));
       if (!isOpen) wrapper.classList.add("open");
@@ -152,7 +141,6 @@ function renderChecklist() {
 }
 
 /* ---------------- Search ---------------- */
-
 if (searchInput) {
   searchInput.addEventListener("input", e => {
     searchQuery = e.target.value.trim();
@@ -161,10 +149,8 @@ if (searchInput) {
 }
 
 /* ---------------- Tags ---------------- */
-
 function buildTagFilters() {
   if (!tagContainer) return;
-
   tagContainer.innerHTML = "";
   activeTags.clear();
 
@@ -192,27 +178,85 @@ function buildTagFilters() {
 }
 
 /* ---------------- Sort menu ---------------- */
-
 if (filterToggle && filterPanel) {
   filterToggle.addEventListener("click", e => {
     e.stopPropagation();
     filterPanel.hidden = !filterPanel.hidden;
   });
-
   filterPanel.addEventListener("click", e => e.stopPropagation());
-
-  document.addEventListener("click", () => {
-    filterPanel.hidden = true;
-  });
+  document.addEventListener("click", () => filterPanel.hidden = true);
 }
 
 $all("[data-sort]").forEach(btn => {
   btn.addEventListener("click", () => {
     sortMode = btn.dataset.sort;
-
     $all("[data-sort]").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
-
     renderChecklist();
   });
 });
+
+/* ---------------- Admin editor ---------------- */
+function populateAdminSelect() {
+  if (!adminSelect) return;
+  adminSelect.innerHTML = `<option value="">-- Select item --</option>`;
+  checklistItems.forEach(item => {
+    const option = document.createElement("option");
+    option.value = item.id;
+    option.textContent = item.label;
+    adminSelect.appendChild(option);
+  });
+}
+
+if (adminSelect) {
+  adminSelect.addEventListener("change", () => {
+    const item = checklistItems.find(i => i.id === adminSelect.value);
+    if (!item) return;
+    adminTitle.value = item.label;
+    adminDesc.value = item.description || "";
+    adminImage.value = item.imageTag || "";
+    adminTags.value = (item.tags || []).join(",");
+  });
+}
+
+/* ---------------- Admin CRUD ---------------- */
+if (createBtn) {
+  createBtn.addEventListener("click", async () => {
+    const newItem = {
+      label: adminTitle.value,
+      description: adminDesc.value,
+      imageTag: adminImage.value,
+      tags: adminTags.value.split(",").map(t => t.trim())
+    };
+    await addDoc(collection(db, "checklist"), newItem);
+    await loadChecklist();
+  });
+}
+
+if (updateBtn) {
+  updateBtn.addEventListener("click", async () => {
+    const selectedId = adminSelect.value;
+    if (!selectedId) return;
+    await updateDoc(doc(db, "checklist", selectedId), {
+      label: adminTitle.value,
+      description: adminDesc.value,
+      imageTag: adminImage.value,
+      tags: adminTags.value.split(",").map(t => t.trim())
+    });
+    await loadChecklist();
+  });
+}
+
+if (deleteBtn) {
+  deleteBtn.addEventListener("click", async () => {
+    const selectedId = adminSelect.value;
+    if (!selectedId) return;
+    await deleteDoc(doc(db, "checklist", selectedId));
+    adminSelect.value = "";
+    adminTitle.value = "";
+    adminDesc.value = "";
+    adminImage.value = "";
+    adminTags.value = "";
+    await loadChecklist();
+  });
+}

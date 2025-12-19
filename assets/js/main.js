@@ -57,8 +57,23 @@ if (loginBtn) {
       document.body.classList.add("admin-mode");
       loginMsg.textContent = "Admin mode enabled";
       adminLoginForm.classList.remove("active");
+
+      // Show admin editor
+      showAdminEditor();
+
+      // optionally call your enableAdminEditor() here if you have one
+      if (typeof enableAdminEditor === "function") enableAdminEditor();
+
     } catch (err) {
-      loginMsg.textContent = "Login failed";
+      loginMsg.textContent = "Login failed: " + err.message;
     }
   });
+}
+
+
+/* ---------- Admin editor setup ---------- */
+function showAdminEditor() {
+  const editor = document.getElementById("admin-editor");
+  if (!editor) return;
+  editor.style.display = "flex"; // show the editor
 }

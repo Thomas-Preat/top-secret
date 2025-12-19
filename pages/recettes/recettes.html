@@ -18,8 +18,8 @@
         </button>
         <nav id="primary-nav" class="nav-menu">
             <a href="../../index.html">Accueil</a>
-            <a href="../recettes/recettes.html">Recettes</a>
-            <a href="coupons.html">coupons</a>
+            <a href="recettes.html">Recettes</a>
+            <a href="../coupons/coupons.html">Coupons</a>
 
             <!-- Admin menu item -->
             <div class="nav-admin">
@@ -34,56 +34,38 @@
         </nav>
     </header>
 
-<div id="admin-editor">
-    <select id="admin-select">
-        <option value="">-- Select item --</option>
-    </select>
-    <input type="text" id="admin-title" placeholder="Label">
-    <input type="text" id="admin-desc" placeholder="Description">
-    <select id="admin-image">
-        <option value="">-- Select image --</option>
-        <option value="bed">Bed</option>
-        <option value="outside">Outside</option>
-        <option value="cooking">Cooking</option>
-    </select>
-    <input type="text" id="admin-tags" placeholder="Tags (comma separated)">
-    <button id="admin-create">Create</button>
-    <button id="admin-update">Update</button>
-    <button id="admin-delete">Delete</button>
+<div class="recipe-controls">
+  <input type="search" id="recipe-search" placeholder="Rechercher..." />
+
+  <button id="recipe-filter-toggle">☰</button>
+
+  <div id="recipe-filter-panel" hidden>
+    <button data-sort="name">Nom A-Z</button>
+    <button data-sort="prepTime">Temps</button>
+    <button data-sort="price">Prix</button>
+  </div>
 </div>
 
-<div class="check-controls">
-    <input
-        type="search"
-        id="check-search"
-        placeholder="Rechercher..."
-        autocomplete="off"
-    >
+<table id="recipe-table">
+  <thead>
+    <tr>
+      <th>Nom</th>
+      <th>Photo</th>
+      <th>Type</th>
+      <th>Protéine</th>
+      <th>Temps</th>
+      <th>Lien</th>
+      <th>Notes</th>
+      <th>Prix</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
 
-    <button id="filter-toggle" aria-label="Filtres">
-        ☰
-    </button>
-
-    <div id="filter-panel" hidden>
-        <div class="filter-section">
-            <h4>Trier</h4>
-            <button data-sort="default">Non faits → faits (A-Z)</button>
-            <button data-sort="az">A-Z</button>
-            <button data-sort="za">Z-A</button>
-        </div>
-
-        <div class="filter-section">
-            <h4>Tags</h4>
-            <div id="tag-filters"></div>
-        </div>
-    </div>
-</div>
-
-
-
-<section id="checklist"></section>
+<!-- Admin editor -->
+<div id="recipe-editor"></div>
 
 <script type="module" src="../../assets/js/main.js"></script>
-<script type="module" src="../../assets/js/checklist.js"></script>
+<script type="module" src="../../assets/js/recipes.js"></script>
 </body>
 </html>

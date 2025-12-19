@@ -94,9 +94,6 @@ function renderRecipes() {
     const wrapper = document.createElement("div");
     wrapper.className = "recipe-card";
 
-    // Optionally expand first card
-    if (index === 0) wrapper.classList.add("open");
-
     // Header: Name + Photo
     const header = document.createElement("div");
     header.className = "recipe-header";

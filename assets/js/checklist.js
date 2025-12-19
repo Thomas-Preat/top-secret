@@ -1,60 +1,124 @@
-// assets/js/checklist.js
-import { db } from "./firebase.js";
 import {
   collection,
   getDocs,
   updateDoc,
-  addDoc,
-  deleteDoc,
   doc
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";0
+import { db } from "./firebase.js";
+/* ---------------- Images ---------------- */
 
-/* ---------- Guard ---------- */
-const checklistContainer = document.getElementById("checklist");
-
-/* ---------- Images ---------- */
 const IMAGE_MAP = {
   bed: { src: "/assets/images/bed.jpg", position: "50% 50%" },
   outside: { src: "../../assets/images/outside.jpg", position: "50% 30%" },
   cooking: { src: "../../assets/images/cooking.jpg", position: "50% 70%" }
 };
 
-/* ---------- Data ---------- */
-const checklistRef = collection(db, "checklist");
-let checklistItems = [];
+/* ---------------- DOM helpers ---------------- */
 
-/* ---------- Load ---------- */
+const $ = (sel, ctx = document) => ctx.querySelector(sel);
+const $all = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+
+/* ---------------- Elements ---------------- */
+
+const checklistContainer = document.getElementById("checklist");
+
+const searchInput = document.getElementById("check-search");
+if (searchInput) {
+  searchInput.addEventListener("input", e => {
+    searchQuery = e.target.value.trim().toLowerCase();
+    renderChecklist();
+  });
+}
+
+const tagContainer = $("#tag-filters");
+
+/* ---------------- State ---------------- */
+
+let checklistItems = [];
+let searchQuery = "";
+let activeTags = new Set();
+let sortMode = "default";
+
+/* ---------------- Load data ---------------- */
+
 async function loadChecklist() {
   checklistItems = [];
-  const snap = await getDocs(checklistRef);
-  snap.forEach(d => checklistItems.push({ id: d.id, ...d.data() }));
+
+  const snapshot = await getDocs(collection(db, "checklist"));
+  snapshot.forEach(docSnap => {
+    checklistItems.push({ id: docSnap.id, ...docSnap.data() });
+  });
+
   renderChecklist();
 }
 
 await loadChecklist();
 
-/* ---------- Render ---------- */
-function renderChecklist() {
+
+/* ---------------- Filtering ---------------- */
+
+function filterItems(items) {
+  return items.filter(item => {
+    const q = searchQuery.toLowerCase();
+
+    const matchesSearch =
+      !q ||
+      item.label.toLowerCase().includes(q) ||
+      (item.description || "").toLowerCase().includes(q);
+
+    const matchesTags =
+      activeTags.size === 0 ||
+      (item.tags || []).some(tag => activeTags.has(tag));
+
+    return matchesSearch && matchesTags;
+  });
+}
+
+/* ---------------- Sorting ---------------- */
+
+function sortItems(items) {
+  return items.slice().sort((a, b) => {
+    if (sortMode === "az") {
+      return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
+    }
+
+    if (sortMode === "za") {
+      return b.label.localeCompare(a.label, "fr", { sensitivity: "base" });
+    }
+
+    if (sortMode === "checked") {
+      if (a.checked !== b.checked) return a.checked ? 1 : -1;
+      return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
+    }
+
+    if (a.checked !== b.checked) return a.checked ? 1 : -1;
+    return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
+  });
+}
+
+/* ---------------- Render ---------------- */
+
+function renderChecklist(db) {
+  console.log("render loaded");
   checklistContainer.innerHTML = "";
 
-  checklistItems.forEach(item => {
+  const filtered = filterItems(checklistItems);
+  const sorted = sortItems(filtered);
+
+  sorted.forEach(item => {
     const wrapper = document.createElement("div");
     wrapper.className = "check-item";
     if (item.checked) wrapper.classList.add("checked");
 
-    /* background image */
-    const img = IMAGE_MAP[item.imageTag];
-    if (img) {
-      wrapper.style.backgroundImage = `url(${img.src})`;
-      wrapper.style.backgroundPosition = img.position || "center";
-    }
-
-    /* checkbox */
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = item.checked;
 
-    /* text */
+    if (!document.body.classList.contains("admin-mode")) {
+      checkbox.disabled = true;
+      checkbox.style.display = "none";
+    }
+
     const textWrap = document.createElement("div");
     textWrap.className = "check-text";
 
@@ -66,30 +130,28 @@ function renderChecklist() {
     desc.className = "check-description";
     desc.textContent = item.description || "";
 
-    textWrap.appendChild(label);
-    textWrap.appendChild(desc);
+    textWrap.append(label, desc);
+    wrapper.append(checkbox, textWrap);
 
-    wrapper.appendChild(checkbox);
-    wrapper.appendChild(textWrap);
+    const img = IMAGE_MAP[item.imageTag];
+    if (img) {
+      wrapper.style.backgroundImage = `url(${img.src})`;
+      wrapper.style.backgroundPosition = img.position || "center";
+    }
 
-    /* checkbox logic */
-    checkbox.addEventListener("change", async e => {
-      e.stopPropagation();
+    checkbox.addEventListener("change", async () => {
+      item.checked = checkbox.checked;
       await updateDoc(doc(db, "checklist", item.id), {
         checked: checkbox.checked
       });
-      await loadChecklist();
+      renderChecklist(db);
     });
 
-    /* open / close */
     wrapper.addEventListener("click", e => {
       if (e.target.tagName === "INPUT") return;
 
       const isOpen = wrapper.classList.contains("open");
-      document.querySelectorAll(".check-item.open").forEach(el =>
-        el.classList.remove("open")
-      );
-
+      $all(".check-item.open").forEach(i => i.classList.remove("open"));
       if (!isOpen) wrapper.classList.add("open");
     });
 
@@ -97,67 +159,49 @@ function renderChecklist() {
   });
 }
 
-/* ---------- Admin editor ---------- */
-if (document.body.classList.contains("admin-mode")) {
-  enableAdminEditor();
+/* ---------------- Search ---------------- */
+
+searchInput.addEventListener("input", e => {
+  searchQuery = e.target.value.trim();
+  renderChecklist(window.db);
+});
+
+/* ---------------- Tags ---------------- */
+
+function buildTagFilters() {
+  tagContainer.innerHTML = "";
+  activeTags.clear();
+
+  const tags = new Set();
+  checklistItems.forEach(i => (i.tags || []).forEach(t => tags.add(t)));
+
+  tags.forEach(tag => {
+    const btn = document.createElement("button");
+    btn.className = "tag-btn";
+    btn.textContent = tag;
+
+    btn.addEventListener("click", () => {
+      if (activeTags.has(tag)) {
+        activeTags.delete(tag);
+        btn.classList.remove("active");
+      } else {
+        activeTags.add(tag);
+        btn.classList.add("active");
+      }
+      renderChecklist(window.db);
+    });
+
+    tagContainer.appendChild(btn);
+  });
 }
 
-function enableAdminEditor() {
-  const editor = document.getElementById("admin-editor");
-  if (!editor) return;
+/* ---------------- Sorting UI ---------------- */
 
-  editor.style.display = "flex";
-
-  const titleInput = document.getElementById("admin-title");
-  const descInput = document.getElementById("admin-desc");
-  const imageSelect = document.getElementById("admin-image");
-  const tagsInput = document.getElementById("admin-tags");
-  const createBtn = document.getElementById("admin-create");
-  const updateBtn = document.getElementById("admin-update");
-  const deleteBtn = document.getElementById("admin-delete");
-
-  let selectedId = null;
-
-  checklistContainer.addEventListener("click", e => {
-    const item = e.target.closest(".check-item");
-    if (!item) return;
-
-    const idx = [...checklistContainer.children].indexOf(item);
-    selectedId = checklistItems[idx].id;
-
-    const data = checklistItems[idx];
-    titleInput.value = data.label;
-    descInput.value = data.description || "";
-    imageSelect.value = data.imageTag || "";
-    tagsInput.value = (data.tags || []).join(",");
+$all("[data-sort]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    sortMode = btn.dataset.sort;
+    $all("[data-sort]").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    renderChecklist(window.db);
   });
-
-  createBtn.addEventListener("click", async () => {
-    await addDoc(checklistRef, {
-      label: titleInput.value,
-      description: descInput.value,
-      imageTag: imageSelect.value,
-      tags: tagsInput.value.split(",").map(t => t.trim()),
-      checked: false
-    });
-    await loadChecklist();
-  });
-
-  updateBtn.addEventListener("click", async () => {
-    if (!selectedId) return;
-    await updateDoc(doc(db, "checklist", selectedId), {
-      label: titleInput.value,
-      description: descInput.value,
-      imageTag: imageSelect.value,
-      tags: tagsInput.value.split(",").map(t => t.trim())
-    });
-    await loadChecklist();
-  });
-
-  deleteBtn.addEventListener("click", async () => {
-    if (!selectedId) return;
-    await deleteDoc(doc(db, "checklist", selectedId));
-    selectedId = null;
-    await loadChecklist();
-  });
-}
+});

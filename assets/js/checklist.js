@@ -32,7 +32,10 @@ const deleteBtn = $("#admin-delete");
 
 /* ---------------- Images ---------------- */
 const IMAGE_MAP = {
+  default: { src: "/assets/images/default.jpg", position: "50% 50%" },
   bed: { src: "/assets/images/bed.jpg", position: "50% 50%" },
+  relax: { src: "/assets/images/realx.jpg", position: "50% 50%" },
+  trobbio: { src: "/assets/images/trobbio.jpg", position: "50% 50%" },
   outside: { src: "../../assets/images/outside.jpg", position: "50% 30%" },
   cooking: { src: "../../assets/images/cooking.jpg", position: "50% 70%" }
 };

@@ -64,16 +64,20 @@ await loadChecklist();
 function filterItems(items) {
   return items.filter(item => {
     const q = searchQuery.toLowerCase();
+
     const matchesSearch =
       !q ||
       item.label.toLowerCase().includes(q) ||
       (item.description || "").toLowerCase().includes(q);
+
     const matchesTags =
       activeTags.size === 0 ||
-      (item.tags || []).some(tag => activeTags.has(tag));
+      [...activeTags].every(tag => (item.tags || []).includes(tag));
+
     return matchesSearch && matchesTags;
   });
 }
+
 
 /* ---------------- Sorting ---------------- */
 

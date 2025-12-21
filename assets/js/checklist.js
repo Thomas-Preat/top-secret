@@ -34,7 +34,7 @@ const deleteBtn = $("#admin-delete");
 const IMAGE_MAP = {
   default: { src: "/assets/images/default.jpg", position: "50% 50%" },
   bed: { src: "/assets/images/bed.jpg", position: "50% 50%" },
-  relax: { src: "/assets/images/realx.jpg", position: "50% 50%" },
+  relax: { src: "/assets/images/relax.jpg", position: "80% 55%" },
   trobbio: { src: "/assets/images/trobbio.jpg", position: "50% 50%" },
   outside: { src: "../../assets/images/outside.jpg", position: "50% 30%" },
   cooking: { src: "../../assets/images/cooking.jpg", position: "50% 70%" }
@@ -76,14 +76,54 @@ function filterItems(items) {
 }
 
 /* ---------------- Sorting ---------------- */
+
+function normalizeLabel(label) {
+  return (label ?? "")
+    .toString()
+    .trim()
+    .toLowerCase();
+}
+
 function sortItems(items) {
-  return items.slice().sort((a, b) => {
-    if (sortMode === "az") return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
-    if (sortMode === "za") return b.label.localeCompare(a.label, "fr", { sensitivity: "base" });
-    if (a.checked !== b.checked) return a.checked ? 1 : -1;
-    return a.label.localeCompare(b.label, "fr", { sensitivity: "base" });
+  const list = items.slice();
+
+  // A → Z
+  if (sortMode === "az") {
+    return list.sort((a, b) =>
+      normalizeLabel(a.label).localeCompare(
+        normalizeLabel(b.label),
+        "fr",
+        { sensitivity: "base" }
+      )
+    );
+  }
+
+  // Z → A
+  if (sortMode === "za") {
+    return list.sort((a, b) =>
+      normalizeLabel(b.label).localeCompare(
+        normalizeLabel(a.label),
+        "fr",
+        { sensitivity: "base" }
+      )
+    );
+  }
+
+  // Not done → Done, then A → Z
+  return list.sort((a, b) => {
+    const aChecked = !!a.checked;
+    const bChecked = !!b.checked;
+
+    if (aChecked !== bChecked) return aChecked ? 1 : -1;
+
+    return normalizeLabel(a.label).localeCompare(
+      normalizeLabel(b.label),
+      "fr",
+      { sensitivity: "base" }
+    );
   });
 }
+
 
 /* ---------------- Render ---------------- */
 function renderChecklist() {

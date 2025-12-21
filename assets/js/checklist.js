@@ -77,51 +77,29 @@ function filterItems(items) {
 
 /* ---------------- Sorting ---------------- */
 
-function normalizeLabel(label) {
-  return (label ?? "")
-    .toString()
-    .trim()
-    .toLowerCase();
-}
 
 function sortItems(items) {
   const list = items.slice();
 
-  // A → Z
-  if (sortMode === "az") {
-    return list.sort((a, b) =>
-      normalizeLabel(a.label).localeCompare(
-        normalizeLabel(b.label),
-        "fr",
-        { sensitivity: "base" }
-      )
-    );
-  }
+  // Step 1: alphabetical base sort
+  list.sort((a, b) =>
+    a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
+  );
 
-  // Z → A
+  // Step 2: apply selected mode
   if (sortMode === "za") {
-    return list.sort((a, b) =>
-      normalizeLabel(b.label).localeCompare(
-        normalizeLabel(a.label),
-        "fr",
-        { sensitivity: "base" }
-      )
-    );
+    list.reverse();
+    return list;
   }
 
-  // Not done → Done, then A → Z
-  return list.sort((a, b) => {
-    const aChecked = !!a.checked;
-    const bChecked = !!b.checked;
+  if (sortMode === "default") {
+    const notDone = list.filter(i => !i.checked);
+    const done = list.filter(i => i.checked);
+    return [...notDone, ...done];
+  }
 
-    if (aChecked !== bChecked) return aChecked ? 1 : -1;
-
-    return normalizeLabel(a.label).localeCompare(
-      normalizeLabel(b.label),
-      "fr",
-      { sensitivity: "base" }
-    );
-  });
+  // az
+  return list;
 }
 
 

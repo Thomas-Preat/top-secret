@@ -2,14 +2,29 @@ import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
+const requiredEnvVars = [
+  "VITE_FIREBASE_API_KEY",
+  "VITE_FIREBASE_AUTH_DOMAIN",
+  "VITE_FIREBASE_DATABASE_URL",
+  "VITE_FIREBASE_PROJECT_ID",
+  "VITE_FIREBASE_STORAGE_BUCKET",
+  "VITE_FIREBASE_MESSAGING_SENDER_ID",
+  "VITE_FIREBASE_APP_ID"
+];
+
+const missingEnvVars = requiredEnvVars.filter((key) => !import.meta.env[key]);
+if (missingEnvVars.length > 0) {
+  throw new Error(`Missing Firebase env vars: ${missingEnvVars.join(", ")}`);
+}
+
 const firebaseConfig = {
-  apiKey: "AIzaSyCPawC7OPXmvzu2Fj8Uzfj1ZXQI3v-6VL8",
-  authDomain: "topsecret-9ae10.firebaseapp.com",
-  databaseURL: "https://topsecret-9ae10-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "topsecret-9ae10",
-  storageBucket: "topsecret-9ae10.firebasestorage.app",
-  messagingSenderId: "946145195302",
-  appId: "1:946145195302:web:a25c392b7efde11137fde7"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);

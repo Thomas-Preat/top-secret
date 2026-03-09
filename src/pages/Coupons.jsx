@@ -4,6 +4,7 @@ import { db } from "../lib/firebase";
 
 const baseUrl = import.meta.env.BASE_URL || "/";
 const imagePath = (fileName) => `${baseUrl}images/${fileName}`;
+const PRIVATE_TAG = "private";
 
 const IMAGE_MAP = {
   default: { src: imagePath("default.jpg"), position: "50% 50%" },
@@ -19,6 +20,10 @@ function normalizeTags(value) {
     .split(",")
     .map((tag) => tag.trim())
     .filter(Boolean);
+}
+
+function isPrivateItem(tags = []) {
+  return tags.some((tag) => String(tag).trim().toLowerCase() === PRIVATE_TAG);
 }
 
 function Coupons({ user }) {
@@ -78,13 +83,19 @@ function Coupons({ user }) {
     items.forEach((item) => {
       (item.tags || []).forEach((tag) => tags.add(tag));
     });
-    return Array.from(tags).sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
-  }, [items]);
+    return Array.from(tags)
+      .filter((tag) => isAdmin || String(tag).trim().toLowerCase() !== PRIVATE_TAG)
+      .sort((a, b) => a.localeCompare(b, "fr", { sensitivity: "base" }));
+  }, [isAdmin, items]);
 
   const filteredItems = useMemo(() => {
     const lowerQuery = searchQuery.toLowerCase();
 
     const filtered = items.filter((item) => {
+      if (!isAdmin && isPrivateItem(item.tags || [])) {
+        return false;
+      }
+
       const matchesSearch =
         !lowerQuery ||
         item.label.toLowerCase().includes(lowerQuery) ||
@@ -112,7 +123,7 @@ function Coupons({ user }) {
     }
 
     return sorted;
-  }, [activeTags, items, searchQuery, sortMode]);
+  }, [activeTags, isAdmin, items, searchQuery, sortMode]);
 
   function toggleTag(tag) {
     setActiveTags((current) => {

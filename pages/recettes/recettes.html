@@ -13,28 +13,28 @@
   <header class="header-banner">
     <h1 class="logo">Thomas Préat</h1>
 
-    <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Ouvrir le menu">
+    <button class="nav-toggle" aria-expanded="false" aria-controls="primary-nav" aria-label="Ouvrir le menu" type="button">
       <span class="bar"></span><span class="bar"></span><span class="bar"></span>
     </button>
     <nav id="primary-nav" class="nav-menu">
       <a href="../../index.html">Accueil</a>
       <a href="../coupons/coupons.html">Coupons</a>
-      <a href="#">Recettes</a>
+      <a href="recettes.html" aria-current="page">Recettes</a>
 
       <div class="nav-admin">
-        <button id="admin-menu-toggle" class="admin-toggle">Admin ⚙️</button>
+        <button id="admin-menu-toggle" class="admin-toggle" type="button" aria-expanded="false" aria-controls="admin-login">Admin</button>
         <div id="admin-login" class="admin-login" hidden>
-          <input type="text" id="admin-username" placeholder="Name">
-          <input type="password" id="admin-password" placeholder="Password">
-          <button id="loginBtn">Login</button>
-          <p id="admin-login-msg" style="color:red;font-size:0.85rem;"></p>
+          <input type="email" id="admin-username" placeholder="Email" autocomplete="username">
+          <input type="password" id="admin-password" placeholder="Password" autocomplete="current-password">
+          <button id="loginBtn" type="button">Login</button>
+          <button id="logoutBtn" type="button">Logout</button>
+          <p id="admin-login-msg" class="admin-login-msg"></p>
         </div>
       </div>
     </nav>
   </header>
 
-  <!-- Admin editor -->
-  <div id="admin-editor" style="display:none;">
+  <div id="admin-editor" hidden>
     <select id="admin-select"></select>
     <input type="text" id="admin-name" placeholder="Nom (obligatoire)">
     <input type="text" id="admin-photo" placeholder="Photo URL (optionnel)">
@@ -44,16 +44,15 @@
     <input type="text" id="admin-link" placeholder="Lien recette (optionnel)">
     <input type="text" id="admin-notes" placeholder="Notes (optionnel)">
     <input type="text" id="admin-price" placeholder="Prix (optionnel)">
-    <button id="admin-create">Créer</button>
-    <button id="admin-update">Mettre à jour</button>
-    <button id="admin-delete">Supprimer</button>
+    <button id="admin-create" type="button">Créer</button>
+    <button id="admin-update" type="button">Mettre à jour</button>
+    <button id="admin-delete" type="button">Supprimer</button>
   </div>
 
-  <!-- Filters and search -->
   <div class="check-controls">
     <input type="search" id="recipe-search" placeholder="Rechercher...">
 
-    <button id="filter-toggle" aria-label="Filtres">☰</button>
+    <button id="filter-toggle" aria-label="Filtres" type="button" aria-expanded="false" aria-controls="filter-panel">☰</button>
     <div id="filter-panel" hidden>
       <div class="filter-section">
         <h4>Type</h4>
@@ -65,15 +64,14 @@
       </div>
       <div class="filter-section">
         <h4>Trier</h4>
-        <button data-sort="name-asc">Nom A → Z</button>
-        <button data-sort="name-desc">Nom Z → A</button>
-        <button data-sort="prep-asc">Préparation ↑</button>
-        <button data-sort="prep-desc">Préparation ↓</button>
+        <button data-sort="name-asc" type="button">Nom A vers Z</button>
+        <button data-sort="name-desc" type="button">Nom Z vers A</button>
+        <button data-sort="prep-asc" type="button">Préparation croissante</button>
+        <button data-sort="prep-desc" type="button">Préparation décroissante</button>
       </div>
     </div>
   </div>
 
-  <!-- Recipes container -->
   <section id="recipes"></section>
 
   <script type="module" src="../../assets/js/main.js"></script>

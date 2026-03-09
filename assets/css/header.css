@@ -109,3 +109,9 @@
     border: none;
 }
 
+.admin-login-msg {
+    margin: 0;
+    color: #ff7f7f;
+    font-size: 0.85rem;
+}
+

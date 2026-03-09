@@ -9,18 +9,29 @@ import {
 
 import { db } from "./firebase.js";
 
-/* ---------------- Helpers ---------------- */
-const $ = (sel, ctx = document) => ctx.querySelector(sel);
-const $all = (sel, ctx = document) => [...ctx.querySelectorAll(sel)];
+const $ = (selector, ctx = document) => ctx.querySelector(selector);
+const $$ = (selector, ctx = document) => Array.from(ctx.querySelectorAll(selector));
 
-/* ---------------- Elements ---------------- */
+const IMAGE_MAP = {
+  default: { src: "../../assets/images/default.jpg", position: "50% 50%" },
+  bed: { src: "../../assets/images/bed.jpg", position: "50% 50%" },
+  relax: { src: "../../assets/images/relax.jpg", position: "80% 55%" },
+  trobbio: { src: "../../assets/images/trobbio.jpg", position: "50% 50%" },
+  outside: { src: "../../assets/images/outside.jpg", position: "50% 30%" },
+  cooking: { src: "../../assets/images/cooking.jpg", position: "50% 70%" }
+};
+
+let checklistItems = [];
+let searchQuery = "";
+let activeTags = new Set();
+let sortMode = "default";
+
 const checklistContainer = $("#checklist");
 const searchInput = $("#check-search");
 const filterToggle = $("#filter-toggle");
 const filterPanel = $("#filter-panel");
 const tagContainer = $("#tag-filters");
 
-/* Admin editor inputs/buttons */
 const adminSelect = $("#admin-select");
 const adminTitle = $("#admin-title");
 const adminDesc = $("#admin-desc");
@@ -30,39 +41,35 @@ const createBtn = $("#admin-create");
 const updateBtn = $("#admin-update");
 const deleteBtn = $("#admin-delete");
 
-/* ---------------- Images ---------------- */
-const IMAGE_MAP = {
-  default: { src: "/assets/images/default.jpg", position: "50% 50%" },
-  bed: { src: "/assets/images/bed.jpg", position: "50% 50%" },
-  relax: { src: "/assets/images/relax.jpg", position: "80% 55%" },
-  trobbio: { src: "/assets/images/trobbio.jpg", position: "50% 50%" },
-  outside: { src: "../../assets/images/outside.jpg", position: "50% 30%" },
-  cooking: { src: "../../assets/images/cooking.jpg", position: "50% 70%" }
-};
+function normalizeTags(value) {
+  return value
+    .split(",")
+    .map((tag) => tag.trim())
+    .filter(Boolean);
+}
 
-/* ---------------- State ---------------- */
-let checklistItems = [];
-let searchQuery = "";
-let activeTags = new Set();
-let sortMode = "default";
-
-/* ---------------- Load data ---------------- */
 async function loadChecklist() {
-  checklistItems = [];
+  const loadedItems = [];
   const snapshot = await getDocs(collection(db, "checklist"));
-  snapshot.forEach(docSnap => {
-    checklistItems.push({ id: docSnap.id, ...docSnap.data() });
+  snapshot.forEach((docSnap) => {
+    loadedItems.push({
+      id: docSnap.id,
+      label: docSnap.data().label || "Sans titre",
+      description: docSnap.data().description || "",
+      imageTag: docSnap.data().imageTag || "default",
+      tags: Array.isArray(docSnap.data().tags) ? docSnap.data().tags : [],
+      checked: Boolean(docSnap.data().checked)
+    });
   });
+
+  checklistItems = loadedItems;
   buildTagFilters();
   populateAdminSelect();
   renderChecklist();
 }
 
-await loadChecklist();
-
-/* ---------------- Filtering ---------------- */
 function filterItems(items) {
-  return items.filter(item => {
+  return items.filter((item) => {
     const q = searchQuery.toLowerCase();
 
     const matchesSearch =
@@ -72,25 +79,17 @@ function filterItems(items) {
 
     const matchesTags =
       activeTags.size === 0 ||
-      [...activeTags].every(tag => (item.tags || []).includes(tag));
+      Array.from(activeTags).every((tag) => (item.tags || []).includes(tag));
 
     return matchesSearch && matchesTags;
   });
 }
 
-
-/* ---------------- Sorting ---------------- */
-
-
 function sortItems(items) {
   const list = items.slice();
 
-  // Step 1: alphabetical base sort
-  list.sort((a, b) =>
-    a.label.localeCompare(b.label, "fr", { sensitivity: "base" })
-  );
+  list.sort((a, b) => a.label.localeCompare(b.label, "fr", { sensitivity: "base" }));
 
-  // Step 2: apply selected mode
   if (sortMode === "za") {
     list.reverse();
     return list;
@@ -102,12 +101,9 @@ function sortItems(items) {
     return [...notDone, ...done];
   }
 
-  // az
   return list;
 }
 
-
-/* ---------------- Render ---------------- */
 function renderChecklist() {
   if (!checklistContainer) return;
   checklistContainer.innerHTML = "";
@@ -115,7 +111,7 @@ function renderChecklist() {
   const filtered = filterItems(checklistItems);
   const sorted = sortItems(filtered);
 
-  sorted.forEach(item => {
+  sorted.forEach((item) => {
     const wrapper = document.createElement("div");
     wrapper.className = "check-item";
     if (item.checked) wrapper.classList.add("checked");
@@ -123,10 +119,7 @@ function renderChecklist() {
     const checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.checked = item.checked;
-    if (!document.body.classList.contains("admin-mode")) {
-      checkbox.disabled = true;
-      checkbox.style.display = "none";
-    }
+    checkbox.disabled = !document.body.classList.contains("admin-mode");
 
     const textWrap = document.createElement("div");
     textWrap.className = "check-text";
@@ -148,16 +141,17 @@ function renderChecklist() {
       wrapper.style.backgroundPosition = img.position || "center";
     }
 
-    checkbox.addEventListener("change", async () => {
+    checkbox.addEventListener("change", async (event) => {
       item.checked = checkbox.checked;
-      await updateDoc(doc(db, "checklist", item.id), { checked: checkbox.checked });
+      event.stopPropagation();
+      await updateDoc(doc(db, "checklist", item.id), { checked: item.checked });
       renderChecklist();
     });
 
-    wrapper.addEventListener("click", e => {
-      if (e.target.tagName === "INPUT") return;
+    wrapper.addEventListener("click", (event) => {
+      if (event.target instanceof HTMLInputElement) return;
       const isOpen = wrapper.classList.contains("open");
-      $all(".check-item.open").forEach(i => i.classList.remove("open"));
+      $$(".check-item.open").forEach((openItem) => openItem.classList.remove("open"));
       if (!isOpen) wrapper.classList.add("open");
     });
 
@@ -165,26 +159,25 @@ function renderChecklist() {
   });
 }
 
-/* ---------------- Search ---------------- */
 if (searchInput) {
-  searchInput.addEventListener("input", e => {
-    searchQuery = e.target.value.trim();
+  searchInput.addEventListener("input", (event) => {
+    searchQuery = event.target.value.trim();
     renderChecklist();
   });
 }
 
-/* ---------------- Tags ---------------- */
 function buildTagFilters() {
   if (!tagContainer) return;
   tagContainer.innerHTML = "";
   activeTags.clear();
 
   const tags = new Set();
-  checklistItems.forEach(i => (i.tags || []).forEach(t => tags.add(t)));
+  checklistItems.forEach((item) => (item.tags || []).forEach((tag) => tags.add(tag)));
 
-  tags.forEach(tag => {
+  tags.forEach((tag) => {
     const btn = document.createElement("button");
     btn.className = "tag-btn";
+    btn.type = "button";
     btn.textContent = tag;
 
     btn.addEventListener("click", () => {
@@ -202,30 +195,32 @@ function buildTagFilters() {
   });
 }
 
-/* ---------------- Sort menu ---------------- */
 if (filterToggle && filterPanel) {
-  filterToggle.addEventListener("click", e => {
-    e.stopPropagation();
+  filterToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
     filterPanel.hidden = !filterPanel.hidden;
+    filterToggle.setAttribute("aria-expanded", String(!filterPanel.hidden));
   });
-  filterPanel.addEventListener("click", e => e.stopPropagation());
-  document.addEventListener("click", () => filterPanel.hidden = true);
+  filterPanel.addEventListener("click", (event) => event.stopPropagation());
+  document.addEventListener("click", () => {
+    filterPanel.hidden = true;
+    filterToggle.setAttribute("aria-expanded", "false");
+  });
 }
 
-$all("[data-sort]").forEach(btn => {
+$$("[data-sort]").forEach((btn) => {
   btn.addEventListener("click", () => {
     sortMode = btn.dataset.sort;
-    $all("[data-sort]").forEach(b => b.classList.remove("active"));
+    $$("[data-sort]").forEach((button) => button.classList.remove("active"));
     btn.classList.add("active");
     renderChecklist();
   });
 });
 
-/* ---------------- Admin editor ---------------- */
 function populateAdminSelect() {
   if (!adminSelect) return;
-  adminSelect.innerHTML = `<option value="">-- Select item --</option>`;
-  checklistItems.forEach(item => {
+  adminSelect.innerHTML = `<option value="">-- Choix coupon --</option>`;
+  checklistItems.forEach((item) => {
     const option = document.createElement("option");
     option.value = item.id;
     option.textContent = item.label;
@@ -235,7 +230,7 @@ function populateAdminSelect() {
 
 if (adminSelect) {
   adminSelect.addEventListener("change", () => {
-    const item = checklistItems.find(i => i.id === adminSelect.value);
+    const item = checklistItems.find((entry) => entry.id === adminSelect.value);
     if (!item) return;
     adminTitle.value = item.label;
     adminDesc.value = item.description || "";
@@ -244,15 +239,19 @@ if (adminSelect) {
   });
 }
 
-/* ---------------- Admin CRUD ---------------- */
 if (createBtn) {
   createBtn.addEventListener("click", async () => {
+    const label = adminTitle.value.trim();
+    if (!label) return;
+
     const newItem = {
-      label: adminTitle.value,
-      description: adminDesc.value,
+      label,
+      description: adminDesc.value.trim(),
       imageTag: adminImage.value,
-      tags: adminTags.value.split(",").map(t => t.trim())
+      tags: normalizeTags(adminTags.value),
+      checked: false
     };
+
     await addDoc(collection(db, "checklist"), newItem);
     await loadChecklist();
   });
@@ -262,12 +261,14 @@ if (updateBtn) {
   updateBtn.addEventListener("click", async () => {
     const selectedId = adminSelect.value;
     if (!selectedId) return;
+
     await updateDoc(doc(db, "checklist", selectedId), {
-      label: adminTitle.value,
-      description: adminDesc.value,
+      label: adminTitle.value.trim(),
+      description: adminDesc.value.trim(),
       imageTag: adminImage.value,
-      tags: adminTags.value.split(",").map(t => t.trim())
+      tags: normalizeTags(adminTags.value)
     });
+
     await loadChecklist();
   });
 }
@@ -280,8 +281,12 @@ if (deleteBtn) {
     adminSelect.value = "";
     adminTitle.value = "";
     adminDesc.value = "";
-    adminImage.value = "";
+    adminImage.value = "default";
     adminTags.value = "";
     await loadChecklist();
   });
 }
+
+document.addEventListener("admin:enabled", renderChecklist);
+
+await loadChecklist();

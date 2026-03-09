@@ -29,6 +29,7 @@ function Recettes({ user }) {
   const filterPanelRef = useRef(null);
 
   const [selectedId, setSelectedId] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
   const [adminName, setAdminName] = useState("");
   const [adminPhoto, setAdminPhoto] = useState("");
   const [adminType, setAdminType] = useState("");
@@ -174,6 +175,26 @@ function Recettes({ user }) {
     setAdminPrice(recipe.price || "");
   }
 
+  function startEditRecipe(recipeId) {
+    setIsCreating(false);
+    handleSelectRecipe(recipeId);
+    setOpenRecipeId(recipeId);
+  }
+
+  function startCreateRecipe() {
+    setIsCreating(true);
+    setSelectedId("");
+    setAdminName("");
+    setAdminPhoto("");
+    setAdminType("");
+    setAdminProtein("");
+    setAdminPrep("");
+    setAdminLink("");
+    setAdminNotes("");
+    setAdminPrice("");
+    setOpenRecipeId(null);
+  }
+
   async function handleCreate() {
     const newRecipe = {
       name: sanitizeText(adminName),
@@ -193,6 +214,15 @@ function Recettes({ user }) {
 
     await addDoc(collection(db, "recipeList"), newRecipe);
     await loadRecipes();
+    setIsCreating(false);
+    setAdminName("");
+    setAdminPhoto("");
+    setAdminType("");
+    setAdminProtein("");
+    setAdminPrep("");
+    setAdminLink("");
+    setAdminNotes("");
+    setAdminPrice("");
   }
 
   async function handleUpdate() {
@@ -217,93 +247,12 @@ function Recettes({ user }) {
 
     await deleteDoc(doc(db, "recipeList", selectedId));
     setSelectedId("");
+    setOpenRecipeId(null);
     await loadRecipes();
   }
 
   return (
     <main>
-      {isAdmin ? (
-        <div id="admin-editor" style={{ display: "flex" }}>
-          <select
-            id="admin-select"
-            value={selectedId}
-            onChange={(event) => handleSelectRecipe(event.target.value)}
-          >
-            <option value="">-- Choix recette --</option>
-            {recipes.map((recipe) => (
-              <option key={recipe.id} value={recipe.id}>
-                {recipe.name}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            id="admin-name"
-            placeholder="Nom (obligatoire)"
-            value={adminName}
-            onChange={(event) => setAdminName(event.target.value)}
-          />
-          <input
-            type="text"
-            id="admin-photo"
-            placeholder="Photo URL (optionnel)"
-            value={adminPhoto}
-            onChange={(event) => setAdminPhoto(event.target.value)}
-          />
-          <input
-            type="text"
-            id="admin-type"
-            placeholder="Type (obligatoire, separe par ,)"
-            value={adminType}
-            onChange={(event) => setAdminType(event.target.value)}
-          />
-          <input
-            type="text"
-            id="admin-protein"
-            placeholder="Proteine (optionnel, separe par ,)"
-            value={adminProtein}
-            onChange={(event) => setAdminProtein(event.target.value)}
-          />
-          <input
-            type="text"
-            id="admin-prep"
-            placeholder="Temps preparation (optionnel)"
-            value={adminPrep}
-            onChange={(event) => setAdminPrep(event.target.value)}
-          />
-          <input
-            type="text"
-            id="admin-link"
-            placeholder="Lien recette (optionnel)"
-            value={adminLink}
-            onChange={(event) => setAdminLink(event.target.value)}
-          />
-          <input
-            type="text"
-            id="admin-notes"
-            placeholder="Notes (optionnel)"
-            value={adminNotes}
-            onChange={(event) => setAdminNotes(event.target.value)}
-          />
-          <input
-            type="text"
-            id="admin-price"
-            placeholder="Prix (optionnel)"
-            value={adminPrice}
-            onChange={(event) => setAdminPrice(event.target.value)}
-          />
-          <button id="admin-create" type="button" onClick={handleCreate}>
-            Creer
-          </button>
-          <button id="admin-update" type="button" onClick={handleUpdate}>
-            Mettre a jour
-          </button>
-          <button id="admin-delete" type="button" onClick={handleDelete}>
-            Supprimer
-          </button>
-        </div>
-      ) : null}
-
       <div className="check-controls" ref={filterPanelRef}>
         <input
           type="search"
@@ -312,6 +261,12 @@ function Recettes({ user }) {
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value.trim())}
         />
+
+        {isAdmin ? (
+          <button type="button" className="add-card-btn" onClick={startCreateRecipe}>
+            Add Card
+          </button>
+        ) : null}
 
         <button
           id="filter-toggle"
@@ -393,6 +348,80 @@ function Recettes({ user }) {
         </div>
       </div>
 
+      {isAdmin && isCreating ? (
+        <div className="inline-editor new-card-editor" onClick={(event) => event.stopPropagation()}>
+          <input
+            type="text"
+            placeholder="Nom (obligatoire)"
+            value={adminName}
+            onChange={(event) => setAdminName(event.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Photo URL (optionnel)"
+            value={adminPhoto}
+            onChange={(event) => setAdminPhoto(event.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Type (obligatoire, separe par ,)"
+            value={adminType}
+            onChange={(event) => setAdminType(event.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Proteine (optionnel, separe par ,)"
+            value={adminProtein}
+            onChange={(event) => setAdminProtein(event.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Temps preparation (optionnel)"
+            value={adminPrep}
+            onChange={(event) => setAdminPrep(event.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Lien recette (optionnel)"
+            value={adminLink}
+            onChange={(event) => setAdminLink(event.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Notes (optionnel)"
+            value={adminNotes}
+            onChange={(event) => setAdminNotes(event.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Prix (optionnel)"
+            value={adminPrice}
+            onChange={(event) => setAdminPrice(event.target.value)}
+          />
+          <div className="inline-editor-actions">
+            <button type="button" onClick={handleCreate}>
+              Creer
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsCreating(false);
+                setAdminName("");
+                setAdminPhoto("");
+                setAdminType("");
+                setAdminProtein("");
+                setAdminPrep("");
+                setAdminLink("");
+                setAdminNotes("");
+                setAdminPrice("");
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <section id="recipes">
         {displayedRecipes.map((item) => {
           const isOpen = openRecipeId === item.id;
@@ -405,7 +434,7 @@ function Recettes({ user }) {
               >
                 <img src={item.photo || ""} alt={item.name} className="recipe-photo" loading="lazy" />
 
-                <div>
+                <div className="recipe-meta">
                   <div className="recipe-name">{item.name}</div>
                   <div className="recipe-tags">
                     {(item.type || []).map((type) => (
@@ -420,6 +449,18 @@ function Recettes({ user }) {
                     ))}
                   </div>
                 </div>
+                {isAdmin ? (
+                  <button
+                    type="button"
+                    className="card-edit-btn"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      startEditRecipe(item.id);
+                    }}
+                  >
+                    Edit
+                  </button>
+                ) : null}
               </div>
 
               <div className="recipe-details">
@@ -442,6 +483,83 @@ function Recettes({ user }) {
                 <div>
                   <strong>Notes:</strong> {item.notes || "-"}
                 </div>
+
+                {isAdmin && selectedId === item.id && !isCreating ? (
+                  <div className="inline-editor card-inline-editor" onClick={(event) => event.stopPropagation()}>
+                    <input
+                      type="text"
+                      placeholder="Nom (obligatoire)"
+                      value={adminName}
+                      onChange={(event) => setAdminName(event.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Photo URL (optionnel)"
+                      value={adminPhoto}
+                      onChange={(event) => setAdminPhoto(event.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Type (obligatoire, separe par ,)"
+                      value={adminType}
+                      onChange={(event) => setAdminType(event.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Proteine (optionnel, separe par ,)"
+                      value={adminProtein}
+                      onChange={(event) => setAdminProtein(event.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Temps preparation (optionnel)"
+                      value={adminPrep}
+                      onChange={(event) => setAdminPrep(event.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Lien recette (optionnel)"
+                      value={adminLink}
+                      onChange={(event) => setAdminLink(event.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Notes (optionnel)"
+                      value={adminNotes}
+                      onChange={(event) => setAdminNotes(event.target.value)}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Prix (optionnel)"
+                      value={adminPrice}
+                      onChange={(event) => setAdminPrice(event.target.value)}
+                    />
+                    <div className="inline-editor-actions">
+                      <button type="button" onClick={handleUpdate}>
+                        Save
+                      </button>
+                      <button type="button" onClick={handleDelete}>
+                        Delete
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedId("");
+                          setAdminName("");
+                          setAdminPhoto("");
+                          setAdminType("");
+                          setAdminProtein("");
+                          setAdminPrep("");
+                          setAdminLink("");
+                          setAdminNotes("");
+                          setAdminPrice("");
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
               </div>
             </div>
           );

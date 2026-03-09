@@ -36,6 +36,7 @@ function Coupons({ user }) {
   const filterPanelRef = useRef(null);
 
   const [selectedId, setSelectedId] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
   const [adminTitle, setAdminTitle] = useState("");
   const [adminDesc, setAdminDesc] = useState("");
   const [adminImage, setAdminImage] = useState("default");
@@ -165,6 +166,22 @@ function Coupons({ user }) {
     setAdminTags((selectedItem.tags || []).join(","));
   }
 
+  function startEditItem(itemId) {
+    setIsCreating(false);
+    handleSelectAdminItem(itemId);
+    setOpenItemId(itemId);
+  }
+
+  function startCreateItem() {
+    setIsCreating(true);
+    setSelectedId("");
+    setAdminTitle("");
+    setAdminDesc("");
+    setAdminImage("default");
+    setAdminTags("");
+    setOpenItemId(null);
+  }
+
   async function handleCreate() {
     const label = adminTitle.trim();
     if (!label) return;
@@ -178,6 +195,11 @@ function Coupons({ user }) {
     });
 
     await loadChecklist();
+    setIsCreating(false);
+    setAdminTitle("");
+    setAdminDesc("");
+    setAdminImage("default");
+    setAdminTags("");
   }
 
   async function handleUpdate() {
@@ -202,71 +224,13 @@ function Coupons({ user }) {
     setAdminDesc("");
     setAdminImage("default");
     setAdminTags("");
+    setOpenItemId(null);
 
     await loadChecklist();
   }
 
   return (
     <main>
-      {isAdmin ? (
-        <div id="admin-editor" style={{ display: "flex" }}>
-          <select
-            id="admin-select"
-            value={selectedId}
-            onChange={(event) => handleSelectAdminItem(event.target.value)}
-          >
-            <option value="">-- Choix coupon --</option>
-            {items.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.label}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            id="admin-title"
-            placeholder="Label"
-            value={adminTitle}
-            onChange={(event) => setAdminTitle(event.target.value)}
-          />
-          <input
-            type="text"
-            id="admin-desc"
-            placeholder="Description"
-            value={adminDesc}
-            onChange={(event) => setAdminDesc(event.target.value)}
-          />
-          <select
-            id="admin-image"
-            value={adminImage}
-            onChange={(event) => setAdminImage(event.target.value)}
-          >
-            <option value="default">-- Choix image --</option>
-            <option value="bed">Lit</option>
-            <option value="relax">Relax</option>
-            <option value="outside">Exterieur</option>
-            <option value="cooking">Cuisine</option>
-            <option value="trobbio">Trobbio</option>
-          </select>
-          <input
-            type="text"
-            id="admin-tags"
-            placeholder="Tags (comma separated)"
-            value={adminTags}
-            onChange={(event) => setAdminTags(event.target.value)}
-          />
-          <button id="admin-create" type="button" onClick={handleCreate}>
-            Creer
-          </button>
-          <button id="admin-update" type="button" onClick={handleUpdate}>
-            Mettre a jour
-          </button>
-          <button id="admin-delete" type="button" onClick={handleDelete}>
-            Effacer
-          </button>
-        </div>
-      ) : null}
-
       <div className="check-controls" ref={filterPanelRef}>
         <input
           type="search"
@@ -276,6 +240,12 @@ function Coupons({ user }) {
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value.trim())}
         />
+
+        {isAdmin ? (
+          <button type="button" className="add-card-btn" onClick={startCreateItem}>
+            Add Card
+          </button>
+        ) : null}
 
         <button
           id="filter-toggle"
@@ -335,6 +305,54 @@ function Coupons({ user }) {
         </div>
       </div>
 
+      {isAdmin && isCreating ? (
+        <div className="inline-editor new-card-editor" onClick={(event) => event.stopPropagation()}>
+          <input
+            type="text"
+            placeholder="Label"
+            value={adminTitle}
+            onChange={(event) => setAdminTitle(event.target.value)}
+          />
+          <input
+            type="text"
+            placeholder="Description"
+            value={adminDesc}
+            onChange={(event) => setAdminDesc(event.target.value)}
+          />
+          <select value={adminImage} onChange={(event) => setAdminImage(event.target.value)}>
+            <option value="default">-- Choix image --</option>
+            <option value="bed">Lit</option>
+            <option value="relax">Relax</option>
+            <option value="outside">Exterieur</option>
+            <option value="cooking">Cuisine</option>
+            <option value="trobbio">Trobbio</option>
+          </select>
+          <input
+            type="text"
+            placeholder="Tags (comma separated)"
+            value={adminTags}
+            onChange={(event) => setAdminTags(event.target.value)}
+          />
+          <div className="inline-editor-actions">
+            <button type="button" onClick={handleCreate}>
+              Creer
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsCreating(false);
+                setAdminTitle("");
+                setAdminDesc("");
+                setAdminImage("default");
+                setAdminTags("");
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <section id="checklist">
         {filteredItems.map((item) => {
           const normalizedImageTag = String(item.imageTag || "default").trim().toLowerCase();
@@ -364,6 +382,69 @@ function Coupons({ user }) {
                 <div className="check-label">{item.label}</div>
                 <div className="check-description">{item.description}</div>
               </div>
+              {isAdmin ? (
+                <button
+                  type="button"
+                  className="card-edit-btn"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    startEditItem(item.id);
+                  }}
+                >
+                  Edit
+                </button>
+              ) : null}
+
+              {isAdmin && selectedId === item.id && !isCreating ? (
+                <div className="inline-editor card-inline-editor" onClick={(event) => event.stopPropagation()}>
+                  <input
+                    type="text"
+                    placeholder="Label"
+                    value={adminTitle}
+                    onChange={(event) => setAdminTitle(event.target.value)}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Description"
+                    value={adminDesc}
+                    onChange={(event) => setAdminDesc(event.target.value)}
+                  />
+                  <select value={adminImage} onChange={(event) => setAdminImage(event.target.value)}>
+                    <option value="default">-- Choix image --</option>
+                    <option value="bed">Lit</option>
+                    <option value="relax">Relax</option>
+                    <option value="outside">Exterieur</option>
+                    <option value="cooking">Cuisine</option>
+                    <option value="trobbio">Trobbio</option>
+                  </select>
+                  <input
+                    type="text"
+                    placeholder="Tags (comma separated)"
+                    value={adminTags}
+                    onChange={(event) => setAdminTags(event.target.value)}
+                  />
+                  <div className="inline-editor-actions">
+                    <button type="button" onClick={handleUpdate}>
+                      Save
+                    </button>
+                    <button type="button" onClick={handleDelete}>
+                      Delete
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedId("");
+                        setAdminTitle("");
+                        setAdminDesc("");
+                        setAdminImage("default");
+                        setAdminTags("");
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </div>
           );
         })}

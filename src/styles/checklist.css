@@ -10,14 +10,15 @@
 
 .check-item {
     position: relative;
-    display: flex;
-    align-items: flex-start;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: start;
     gap: 1rem;
 
     width: 100%;
-    height: 3.5rem;
+    min-height: 4.5rem;
 
-    padding: 1.5rem 1.25rem;
+    padding: 1rem 1.1rem;
 
     border-bottom: 1px solid #e5e5e5;
 
@@ -28,11 +29,11 @@
     background-position: center;
 
     cursor: pointer;
-    overflow: hidden;
+    overflow: visible;
 
     transition: 
         background-color 0.3s ease,
-        height 0.4s ease;
+        min-height 0.4s ease;
 }
 
 .check-item:last-child {
@@ -46,8 +47,8 @@
 /* Show checkboxes when admin */
 body.admin-mode .check-item input[type="checkbox"] {
     display: inline-block;
-    transform: scale(1.4);
-    margin-top: 1rem;
+    transform: scale(1.2);
+    margin-top: 0.2rem;
     cursor: pointer;
 }
 
@@ -104,11 +105,77 @@ body.admin-mode .check-item input[type="checkbox"] {
     flex-direction: column;
 }
 
+.card-edit-btn {
+    align-self: start;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid #ffffff66;
+    border-radius: 6px;
+    background: #1f1f1fcc;
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.card-edit-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.add-card-btn {
+    padding: 0.45rem 0.85rem;
+    border: 1px solid #ffffff55;
+    border-radius: 8px;
+    background: #1f1f1f;
+    color: #fff;
+    cursor: pointer;
+}
+
+.add-card-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.inline-editor {
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid #ffffff33;
+    border-radius: 8px;
+    background: #101010e6;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inline-editor input,
+.inline-editor select,
+.inline-editor button {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #222;
+    color: #fff;
+}
+
+.inline-editor-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+}
+
+.new-card-editor {
+    max-width: 700px;
+    margin: 0.75rem 1rem;
+}
+
 .check-label {
-    margin-top: 1rem;
+    margin-top: 0;
     font-size: 1.1rem;
     font-weight: 600;
     transition: color 0.5s ease;
+    line-height: 1.35;
 }
 
 .check-description {
@@ -127,14 +194,18 @@ body.admin-mode .check-item input[type="checkbox"] {
 }
 
 .check-item.open .check-description {
-    max-height: 200px; /* large enough for text */
+    max-height: 420px;
     opacity: 1;
     margin-top: 0.6rem;
 }
 
 .check-item.open {
-    height: 6rem;
+    min-height: 6rem;
     background-color: rgba(0, 0, 0, 0.65);
+}
+
+.card-inline-editor {
+    grid-column: 1 / -1;
 }
 
 .check-controls {

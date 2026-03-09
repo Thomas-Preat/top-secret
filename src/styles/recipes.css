@@ -15,17 +15,18 @@
   border: 1px solid #ddd;
   border-radius: 8px;
   margin-bottom: 12px;
-  overflow: hidden;
+    overflow: visible;
 }
 
 /* Header row */
 .recipe-header {
   display: flex;
-  align-items: center;
+    align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
   padding: 12px;
   cursor: pointer;
+    flex-wrap: wrap;
 }
 
 /* Left side (text) */
@@ -33,6 +34,7 @@
   font-weight: 600;
   font-size: 1.1rem;
   margin-bottom: 6px;
+    line-height: 1.35;
 }
 
 .recipe-tags {
@@ -172,8 +174,78 @@
     border-color: var(--accent);
 }
 
-.recipe-header > div:not(.recipe-photo) {
-  flex: 1;
+.recipe-meta {
+    flex: 1;
+    min-width: 220px;
+}
+
+.card-edit-btn {
+    flex-shrink: 0;
+    padding: 0.35rem 0.7rem;
+    border: 1px solid #ffffff55;
+    border-radius: 6px;
+    background: #1f1f1f;
+    color: #fff;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.card-edit-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.add-card-btn {
+    padding: 0.45rem 0.85rem;
+    border: 1px solid #ffffff55;
+    border-radius: 8px;
+    background: #1f1f1f;
+    color: #fff;
+    cursor: pointer;
+}
+
+.add-card-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.inline-editor {
+    width: 100%;
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid #ffffff33;
+    border-radius: 8px;
+    background: #101010e6;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inline-editor input,
+.inline-editor select,
+.inline-editor button {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.45rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #222;
+    color: #fff;
+}
+
+.inline-editor-actions {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
+}
+
+.new-card-editor {
+    max-width: 780px;
+    margin: 0.75rem 1rem;
+}
+
+.card-inline-editor {
+    margin-top: 1rem;
 }
 
 

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { addDoc, collection, deleteDoc, doc, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "../lib/firebase";
+import CouponCard from "../components/coupons/CouponCard";
+import CouponEditor from "../components/coupons/CouponEditor";
 
 const baseUrl = import.meta.env.BASE_URL || "/";
 const imagePath = (fileName) => `${baseUrl}images/${fileName}`;
@@ -43,6 +45,27 @@ function Coupons({ user }) {
   const [adminTags, setAdminTags] = useState("");
 
   const isAdmin = Boolean(user);
+
+  const editorValues = {
+    title: adminTitle,
+    desc: adminDesc,
+    image: adminImage,
+    tags: adminTags
+  };
+
+  function updateEditorValue(field, value) {
+    if (field === "title") setAdminTitle(value);
+    if (field === "desc") setAdminDesc(value);
+    if (field === "image") setAdminImage(value);
+    if (field === "tags") setAdminTags(value);
+  }
+
+  function resetEditor() {
+    setAdminTitle("");
+    setAdminDesc("");
+    setAdminImage("default");
+    setAdminTags("");
+  }
 
   useEffect(() => {
     loadChecklist();
@@ -153,10 +176,7 @@ function Coupons({ user }) {
     const selectedItem = items.find((item) => item.id === nextId);
 
     if (!selectedItem) {
-      setAdminTitle("");
-      setAdminDesc("");
-      setAdminImage("default");
-      setAdminTags("");
+      resetEditor();
       return;
     }
 
@@ -175,10 +195,7 @@ function Coupons({ user }) {
   function startCreateItem() {
     setIsCreating(true);
     setSelectedId("");
-    setAdminTitle("");
-    setAdminDesc("");
-    setAdminImage("default");
-    setAdminTags("");
+    resetEditor();
     setOpenItemId(null);
   }
 
@@ -196,10 +213,7 @@ function Coupons({ user }) {
 
     await loadChecklist();
     setIsCreating(false);
-    setAdminTitle("");
-    setAdminDesc("");
-    setAdminImage("default");
-    setAdminTags("");
+    resetEditor();
   }
 
   async function handleUpdate() {
@@ -220,10 +234,7 @@ function Coupons({ user }) {
 
     await deleteDoc(doc(db, "checklist", selectedId));
     setSelectedId("");
-    setAdminTitle("");
-    setAdminDesc("");
-    setAdminImage("default");
-    setAdminTags("");
+    resetEditor();
     setOpenItemId(null);
 
     await loadChecklist();
@@ -306,51 +317,17 @@ function Coupons({ user }) {
       </div>
 
       {isAdmin && isCreating ? (
-        <div className="inline-editor new-card-editor" onClick={(event) => event.stopPropagation()}>
-          <input
-            type="text"
-            placeholder="Label"
-            value={adminTitle}
-            onChange={(event) => setAdminTitle(event.target.value)}
-          />
-          <input
-            type="text"
-            placeholder="Description"
-            value={adminDesc}
-            onChange={(event) => setAdminDesc(event.target.value)}
-          />
-          <select value={adminImage} onChange={(event) => setAdminImage(event.target.value)}>
-            <option value="default">-- Choix image --</option>
-            <option value="bed">Lit</option>
-            <option value="relax">Relax</option>
-            <option value="outside">Exterieur</option>
-            <option value="cooking">Cuisine</option>
-            <option value="trobbio">Trobbio</option>
-          </select>
-          <input
-            type="text"
-            placeholder="Tags (comma separated)"
-            value={adminTags}
-            onChange={(event) => setAdminTags(event.target.value)}
-          />
-          <div className="inline-editor-actions">
-            <button type="button" onClick={handleCreate}>
-              Creer
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsCreating(false);
-                setAdminTitle("");
-                setAdminDesc("");
-                setAdminImage("default");
-                setAdminTags("");
-              }}
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+        <CouponEditor
+          mode="create"
+          className="new-card-editor"
+          values={editorValues}
+          onChange={updateEditorValue}
+          onCreate={handleCreate}
+          onCancel={() => {
+            setIsCreating(false);
+            resetEditor();
+          }}
+        />
       ) : null}
 
       <section id="checklist">
@@ -360,92 +337,31 @@ function Coupons({ user }) {
           const isOpen = openItemId === item.id;
 
           return (
-            <div
+            <CouponCard
               key={item.id}
-              className={`check-item ${item.checked ? "checked" : ""} ${isOpen ? "open" : ""}`}
-              style={{
-                backgroundImage: `url(${imageConfig.src})`,
-                backgroundPosition: imageConfig.position || "center"
-              }}
-              onClick={(event) => {
-                if (event.target instanceof HTMLInputElement) return;
-                setOpenItemId((current) => (current === item.id ? null : item.id));
-              }}
+              item={item}
+              isOpen={isOpen}
+              isAdmin={isAdmin}
+              imageConfig={imageConfig}
+              onToggleOpen={() => setOpenItemId((current) => (current === item.id ? null : item.id))}
+              onToggleChecked={toggleChecked}
+              onEdit={startEditItem}
             >
-              <input
-                type="checkbox"
-                checked={item.checked}
-                disabled={!isAdmin}
-                onChange={() => toggleChecked(item)}
-              />
-              <div className="check-text">
-                <div className="check-label">{item.label}</div>
-                <div className="check-description">{item.description}</div>
-              </div>
-              {isAdmin ? (
-                <button
-                  type="button"
-                  className="card-edit-btn"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    startEditItem(item.id);
-                  }}
-                >
-                  Edit
-                </button>
-              ) : null}
-
               {isAdmin && selectedId === item.id && !isCreating ? (
-                <div className="inline-editor card-inline-editor" onClick={(event) => event.stopPropagation()}>
-                  <input
-                    type="text"
-                    placeholder="Label"
-                    value={adminTitle}
-                    onChange={(event) => setAdminTitle(event.target.value)}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Description"
-                    value={adminDesc}
-                    onChange={(event) => setAdminDesc(event.target.value)}
-                  />
-                  <select value={adminImage} onChange={(event) => setAdminImage(event.target.value)}>
-                    <option value="default">-- Choix image --</option>
-                    <option value="bed">Lit</option>
-                    <option value="relax">Relax</option>
-                    <option value="outside">Exterieur</option>
-                    <option value="cooking">Cuisine</option>
-                    <option value="trobbio">Trobbio</option>
-                  </select>
-                  <input
-                    type="text"
-                    placeholder="Tags (comma separated)"
-                    value={adminTags}
-                    onChange={(event) => setAdminTags(event.target.value)}
-                  />
-                  <div className="inline-editor-actions">
-                    <button type="button" onClick={handleUpdate}>
-                      Save
-                    </button>
-                    <button type="button" onClick={handleDelete}>
-                      Delete
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedId("");
-                        setAdminTitle("");
-                        setAdminDesc("");
-                        setAdminImage("default");
-                        setAdminTags("");
-                      }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
+                <CouponEditor
+                  mode="edit"
+                  className="card-inline-editor"
+                  values={editorValues}
+                  onChange={updateEditorValue}
+                  onUpdate={handleUpdate}
+                  onDelete={handleDelete}
+                  onCancel={() => {
+                    setSelectedId("");
+                    resetEditor();
+                  }}
+                />
               ) : null}
-            </div>
+            </CouponCard>
           );
         })}
       </section>

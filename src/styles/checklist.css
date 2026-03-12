@@ -1,5 +1,7 @@
 #checklist {
-    width: 100%;
+    --check-content-width: min(1500px, calc(100vw - 3rem));
+    width: 100vw;
+    margin-left: calc(-50vw + 50%);
     margin-top: 1rem;
 }
 
@@ -10,15 +12,10 @@
 
 .check-item {
     position: relative;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: start;
-    gap: 1rem;
-
     width: 100%;
     min-height: 4.5rem;
 
-    padding: 1rem 1.1rem;
+    padding: 1rem 0;
 
     border-bottom: 1px solid #e5e5e5;
 
@@ -34,6 +31,19 @@
     transition: 
         background-color 0.3s ease,
         min-height 0.4s ease;
+}
+
+.check-item-content {
+    position: relative;
+    z-index: 1;
+    width: var(--check-content-width);
+    margin: 0 auto;
+    padding: 0 1.1rem;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: start;
+    gap: 1rem;
 }
 
 .check-item:last-child {
@@ -85,12 +95,6 @@ body.admin-mode .check-item input[type="checkbox"] {
     text-decoration: line-through;
 }
 
-/* make the content above the overlay */
-.check-item > * {
-    position: relative;
-    z-index: 1;
-}
-
 .check-description {
     margin-top: 0.5rem;
     padding: 0.5rem 2rem;
@@ -137,6 +141,7 @@ body.admin-mode .check-item input[type="checkbox"] {
 
 .inline-editor {
     width: 100%;
+    box-sizing: border-box;
     margin-top: 0.75rem;
     padding: 0.75rem;
     border: 1px solid #ffffff33;
@@ -213,8 +218,15 @@ body.admin-mode .check-item input[type="checkbox"] {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin-top: 1rem;
-    margin-left: 1rem;
+    width: 80vw;
+    margin: 1rem 0 0;
+    margin-left: calc(-50vw + 70%);
+    padding: 0 1.1rem;
+    box-sizing: border-box;
+}
+
+#check-search {
+    margin-right: auto;
 }
 
 #filter-toggle {

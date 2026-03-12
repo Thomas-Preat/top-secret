@@ -6,6 +6,53 @@
         grid-template-columns: 1fr;
         padding-top: 5.2rem;
     }
+
+    #checklist {
+        width: 100vw;
+        margin-left: -1rem;
+    }
+
+    .check-item-content {
+        width: 100%;
+        padding: 0 0.85rem;
+        grid-template-columns: auto 1fr;
+        gap: 0.75rem;
+    }
+
+    .card-edit-btn {
+        grid-column: 2;
+        justify-self: start;
+        margin-top: 0.2rem;
+    }
+
+    .card-inline-editor {
+        grid-column: 1 / -1;
+    }
+
+    .inline-editor-actions {
+        grid-template-columns: 1fr;
+    }
+
+    .check-description {
+        padding: 0.5rem 0;
+    }
+
+    .check-controls {
+        flex-wrap: wrap;
+        width: 100%;
+        padding: 0;
+    }
+
+    #check-search {
+        width: 100%;
+        margin-right: 0;
+    }
+
+    #filter-panel {
+        right: 0;
+        width: min(220px, calc(100vw - 2rem));
+    }
+
     .nav-menu {
         flex-direction: column;
         position: fixed;

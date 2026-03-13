@@ -6,25 +6,25 @@ function MovieEditor({ mode, values, onChange, onCreate, onUpdate, onDelete, onC
     >
       <input
         type="text"
-        placeholder="Titre (obligatoire)"
+        placeholder="Title (required)"
         value={values.title}
         onChange={(event) => onChange("title", event.target.value)}
       />
       <input
         type="text"
-        placeholder="Poster URL (optionnel)"
+        placeholder="Poster URL (optional)"
         value={values.poster}
         onChange={(event) => onChange("poster", event.target.value)}
       />
       <input
         type="text"
-        placeholder="Genres (separes par ,)"
+        placeholder="Genres (comma-separated)"
         value={values.genres}
         onChange={(event) => onChange("genres", event.target.value)}
       />
       <input
         type="text"
-        placeholder="Annee (optionnel)"
+        placeholder="Year (optional)"
         value={values.year}
         onChange={(event) => onChange("year", event.target.value)}
       />
@@ -32,15 +32,15 @@ function MovieEditor({ mode, values, onChange, onCreate, onUpdate, onDelete, onC
         value={values.watched}
         onChange={(event) => onChange("watched", event.target.value)}
       >
-        <option value="false">A voir</option>
-        <option value="true">Vu</option>
+        <option value="false">Wishlist</option>
+        <option value="true">Watched</option>
       </select>
       <input
         type="number"
         min="0"
         max="10"
         step="0.1"
-        placeholder="Mon score (0-10)"
+        placeholder="My score (0-10)"
         value={values.myScore}
         onChange={(event) => onChange("myScore", event.target.value)}
       />
@@ -49,19 +49,19 @@ function MovieEditor({ mode, values, onChange, onCreate, onUpdate, onDelete, onC
         min="0"
         max="10"
         step="0.1"
-        placeholder="Score copine (0-10)"
+        placeholder="Partner score (0-10)"
         value={values.partnerScore}
         onChange={(event) => onChange("partnerScore", event.target.value)}
       />
       <input
         type="text"
-        placeholder="Lien (optionnel)"
+        placeholder="Link (optional)"
         value={values.link}
         onChange={(event) => onChange("link", event.target.value)}
       />
       <input
         type="text"
-        placeholder="Notes (optionnel)"
+        placeholder="Notes (optional)"
         value={values.notes}
         onChange={(event) => onChange("notes", event.target.value)}
       />
@@ -70,7 +70,7 @@ function MovieEditor({ mode, values, onChange, onCreate, onUpdate, onDelete, onC
         {mode === "create" ? (
           <>
             <button type="button" onClick={onCreate}>
-              Creer
+              Create
             </button>
             <button type="button" onClick={onCancel}>
               Cancel

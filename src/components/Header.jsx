@@ -13,9 +13,9 @@ function Header({ user }) {
 
   useEffect(() => {
     if (user) {
-      setMessage(`Connecte en tant que ${user.email || "utilisateur"}.`);
+      setMessage(`Logged in as ${user.email || "user"}.`);
     } else {
-      setMessage("Non connecte. Connecte-toi pour activer le mode admin.");
+      setMessage("Not logged in. Sign in to enable admin mode.");
     }
   }, [user]);
 
@@ -48,13 +48,13 @@ function Header({ user }) {
 
   async function handleLogout() {
     if (!user) {
-      setMessage("Aucune session admin active.");
+      setMessage("No active admin session.");
       return;
     }
 
     try {
       await signOut(auth);
-      setMessage("Logout reussi.");
+      setMessage("Logout successful.");
       setEmail("");
       setPassword("");
       setIsLoginOpen(false);
@@ -75,7 +75,7 @@ function Header({ user }) {
         className="nav-toggle"
         aria-expanded={isNavOpen}
         aria-controls="primary-nav"
-        aria-label="Ouvrir le menu"
+        aria-label="Open menu"
         type="button"
         onClick={() => setIsNavOpen((current) => !current)}
       >
@@ -86,13 +86,13 @@ function Header({ user }) {
 
       <nav id="primary-nav" className={`nav-menu ${isNavOpen ? "show" : ""}`}>
         <NavLink to="/" onClick={() => setIsNavOpen(false)}>
-          Accueil
+          Home
         </NavLink>
         <NavLink to="/coupons" onClick={() => setIsNavOpen(false)}>
           Coupons
         </NavLink>
-        <NavLink to="/recettes" onClick={() => setIsNavOpen(false)}>
-          Recettes
+        <NavLink to="/recipes" onClick={() => setIsNavOpen(false)}>
+          Recipes
         </NavLink>
         <NavLink to="/movies" onClick={() => setIsNavOpen(false)}>
           Movies
@@ -107,7 +107,7 @@ function Header({ user }) {
             aria-controls="admin-login"
             onClick={() => setIsLoginOpen((current) => !current)}
           >
-            {user ? "Admin (connecte)" : "Admin"}
+            {user ? "Admin (logged in)" : "Admin"}
           </button>
 
           <div id="admin-login" className={`admin-login ${isLoginOpen ? "active" : ""}`} hidden={!isLoginOpen}>

@@ -237,7 +237,7 @@ function Movies({ user }) {
     const payload = getPayloadFromEditor();
 
     if (!payload.title) {
-      alert("Le titre est obligatoire.");
+      alert("Title is required.");
       return;
     }
 
@@ -269,7 +269,7 @@ function Movies({ user }) {
         <input
           type="search"
           id="movie-search"
-          placeholder="Rechercher un film..."
+          placeholder="Search movies..."
           autoComplete="off"
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value.trim())}
@@ -283,7 +283,7 @@ function Movies({ user }) {
 
         <button
           id="filter-toggle"
-          aria-label="Filtres"
+          aria-label="Filters"
           type="button"
           aria-expanded={filterOpen}
           aria-controls="filter-panel"
@@ -294,73 +294,73 @@ function Movies({ user }) {
 
         <div id="filter-panel" hidden={!filterOpen}>
           <div className="filter-section">
-            <h4>Statut</h4>
+            <h4>Status</h4>
             <button
               type="button"
               className={activeStatus === "all" ? "active" : ""}
               onClick={() => setActiveStatus("all")}
             >
-              Tous
+              All
             </button>
             <button
               type="button"
               className={activeStatus === "wishlist" ? "active" : ""}
               onClick={() => setActiveStatus("wishlist")}
             >
-              A voir
+              Wishlist
             </button>
             <button
               type="button"
               className={activeStatus === "watched" ? "active" : ""}
               onClick={() => setActiveStatus("watched")}
             >
-              Vus
+              Watched
             </button>
           </div>
 
           <div className="filter-section">
-            <h4>Trier</h4>
+            <h4>Sort</h4>
             <button
               type="button"
               className={sortMode === "title-asc" ? "active" : ""}
               onClick={() => setSortMode("title-asc")}
             >
-              Titre A-Z
+              Title A-Z
             </button>
             <button
               type="button"
               className={sortMode === "title-desc" ? "active" : ""}
               onClick={() => setSortMode("title-desc")}
             >
-              Titre Z-A
+              Title Z-A
             </button>
             <button
               type="button"
               className={sortMode === "score-desc" ? "active" : ""}
               onClick={() => setSortMode("score-desc")}
             >
-              Meilleure note
+              Highest score
             </button>
             <button
               type="button"
               className={sortMode === "score-asc" ? "active" : ""}
               onClick={() => setSortMode("score-asc")}
             >
-              Plus faible note
+              Lowest score
             </button>
             <button
               type="button"
               className={sortMode === "year-desc" ? "active" : ""}
               onClick={() => setSortMode("year-desc")}
             >
-              Annee recente
+              Newest year
             </button>
             <button
               type="button"
               className={sortMode === "year-asc" ? "active" : ""}
               onClick={() => setSortMode("year-asc")}
             >
-              Annee ancienne
+              Oldest year
             </button>
           </div>
         </div>

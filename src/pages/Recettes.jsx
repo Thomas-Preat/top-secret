@@ -271,7 +271,7 @@ function Recettes({ user }) {
         <input
           type="search"
           id="recipe-search"
-          placeholder="Rechercher..."
+          placeholder="Search..."
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value.trim())}
         />
@@ -284,7 +284,7 @@ function Recettes({ user }) {
 
         <button
           id="filter-toggle"
-          aria-label="Filtres"
+          aria-label="Filters"
           type="button"
           aria-expanded={filterOpen}
           aria-controls="filter-panel"
@@ -310,7 +310,7 @@ function Recettes({ user }) {
             </div>
           </div>
           <div className="filter-section">
-            <h4>Proteine</h4>
+            <h4>Protein</h4>
             <div id="protein-filters">
               {proteinOptions.map((protein) => (
                 <button
@@ -325,14 +325,14 @@ function Recettes({ user }) {
             </div>
           </div>
           <div className="filter-section">
-            <h4>Trier</h4>
+            <h4>Sort</h4>
             <button
               data-sort="name-asc"
               type="button"
               className={sortMode === "name-asc" ? "active" : ""}
               onClick={() => setSortMode("name-asc")}
             >
-              Nom A vers Z
+              Name A-Z
             </button>
             <button
               data-sort="name-desc"
@@ -340,7 +340,7 @@ function Recettes({ user }) {
               className={sortMode === "name-desc" ? "active" : ""}
               onClick={() => setSortMode("name-desc")}
             >
-              Nom Z vers A
+              Name Z-A
             </button>
             <button
               data-sort="prep-asc"
@@ -348,7 +348,7 @@ function Recettes({ user }) {
               className={sortMode === "prep-asc" ? "active" : ""}
               onClick={() => setSortMode("prep-asc")}
             >
-              Preparation croissante
+              Prep time ascending
             </button>
             <button
               data-sort="prep-desc"
@@ -356,7 +356,7 @@ function Recettes({ user }) {
               className={sortMode === "prep-desc" ? "active" : ""}
               onClick={() => setSortMode("prep-desc")}
             >
-              Preparation decroissante
+              Prep time descending
             </button>
           </div>
         </div>

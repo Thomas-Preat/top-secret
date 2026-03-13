@@ -1,9 +1,9 @@
 const IMAGE_OPTIONS = [
-  { value: "default", label: "-- Choix image --" },
-  { value: "bed", label: "Lit" },
+  { value: "default", label: "-- Choose image --" },
+  { value: "bed", label: "Bed" },
   { value: "relax", label: "Relax" },
-  { value: "outside", label: "Exterieur" },
-  { value: "cooking", label: "Cuisine" },
+  { value: "outside", label: "Outside" },
+  { value: "cooking", label: "Cooking" },
   { value: "trobbio", label: "Trobbio" }
 ];
 
@@ -46,7 +46,7 @@ function CouponEditor({ mode, values, onChange, onCreate, onUpdate, onDelete, on
         {mode === "create" ? (
           <>
             <button type="button" onClick={onCreate}>
-              Creer
+              Create
             </button>
             <button type="button" onClick={onCancel}>
               Cancel

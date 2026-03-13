@@ -12,12 +12,12 @@ function MovieCard({ item, isOpen, isAdmin, onToggleOpen, onEdit, children }) {
           <div className="movie-title-row">
             <h3 className="movie-title">{item.title}</h3>
             <span className={`movie-state ${item.watched ? "watched" : "wishlist"}`}>
-              {item.watched ? "Vu" : "A voir"}
+              {item.watched ? "Watched" : "Wishlist"}
             </span>
           </div>
 
           <div className="movie-subline">
-            <span>{item.year || "Annee inconnue"}</span>
+            <span>{item.year || "Unknown year"}</span>
             <span className="movie-total-chip">Total: {formatScore(item.totalScore)}</span>
           </div>
 
@@ -46,19 +46,19 @@ function MovieCard({ item, isOpen, isAdmin, onToggleOpen, onEdit, children }) {
 
       <div className="movie-details">
         <div>
-          <strong>Score Thomas:</strong> {formatScore(item.myScore)}
+          <strong>My score:</strong> {formatScore(item.myScore)}
         </div>
         <div>
-          <strong>Score Leeloo:</strong> {formatScore(item.partnerScore)}
+          <strong>Partner score:</strong> {formatScore(item.partnerScore)}
         </div>
         <div>
           <strong>Total:</strong> {formatScore(item.totalScore)}
         </div>
         <div>
-          <strong>Lien:</strong>{" "}
+          <strong>Link:</strong>{" "}
           {item.link ? (
             <a href={item.link} target="_blank" rel="noopener noreferrer">
-              Voir la fiche
+              View details
             </a>
           ) : (
             "-"

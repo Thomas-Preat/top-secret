@@ -91,7 +91,7 @@ function Coupons({ user }) {
       const data = docSnap.data();
       loadedItems.push({
         id: docSnap.id,
-        label: data.label || "Sans titre",
+        label: data.label || "Untitled",
         description: data.description || "",
         imageTag: data.imageTag || "default",
         tags: Array.isArray(data.tags) ? data.tags : [],
@@ -246,7 +246,7 @@ function Coupons({ user }) {
         <input
           type="search"
           id="check-search"
-          placeholder="Rechercher..."
+          placeholder="Search..."
           autoComplete="off"
           value={searchQuery}
           onChange={(event) => setSearchQuery(event.target.value.trim())}
@@ -260,7 +260,7 @@ function Coupons({ user }) {
 
         <button
           id="filter-toggle"
-          aria-label="Filtres"
+          aria-label="Filters"
           type="button"
           aria-expanded={filterOpen}
           aria-controls="filter-panel"
@@ -271,14 +271,14 @@ function Coupons({ user }) {
 
         <div id="filter-panel" hidden={!filterOpen}>
           <div className="filter-section">
-            <h4>Trier</h4>
+            <h4>Sort</h4>
             <button
               data-sort="default"
               type="button"
               className={sortMode === "default" ? "active" : ""}
               onClick={() => setSortMode("default")}
             >
-              Non faits vers faits (A-Z)
+              Not done first (A-Z)
             </button>
             <button
               data-sort="az"

@@ -1,0 +1,209 @@
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;700&display=swap');
+
+#movie-search {
+  margin-right: auto;
+}
+
+.movies-controls {
+  width: min(1100px, calc(100vw - 2rem));
+  margin: 1rem auto 0;
+  padding: 0;
+}
+
+.movies-controls #filter-panel {
+  width: min(280px, calc(100vw - 2rem));
+}
+
+#movies-list {
+  width: min(1100px, calc(100vw - 2rem));
+  margin: 1rem auto 2rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.movie-card {
+  border: 1px solid #28363f;
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, #203040 0%, transparent 45%),
+    linear-gradient(165deg, #111d24 0%, #0c1318 100%);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.25);
+}
+
+.movie-card-header {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  gap: 0.8rem;
+  align-items: start;
+  padding: 0.8rem;
+  cursor: pointer;
+}
+
+.movie-poster {
+  width: 90px;
+  height: 128px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid #ffffff1c;
+  background: #0e0e0e;
+}
+
+.movie-main-meta {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.movie-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.movie-title {
+  margin: 0;
+  font-family: "Bebas Neue", sans-serif;
+  letter-spacing: 0.03em;
+  font-size: 1.7rem;
+  font-weight: 400;
+  line-height: 1;
+  overflow-wrap: anywhere;
+}
+
+.movie-state {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.18rem 0.6rem;
+  font-size: 0.75rem;
+  font-family: "Space Grotesk", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.movie-state.watched {
+  background: #1f5137;
+  color: #bbf5d6;
+}
+
+.movie-state.wishlist {
+  background: #6f5110;
+  color: #ffe4a2;
+}
+
+.movie-subline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #cbd5de;
+  font-size: 0.9rem;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.movie-total-chip {
+  background: #173247;
+  color: #8fd0ff;
+  border: 1px solid #3e5e76;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+}
+
+.movie-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.movie-tag {
+  background: #222f39;
+  border: 1px solid #415463;
+  color: #d4e2ec;
+  border-radius: 999px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.78rem;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.movie-details {
+  display: none;
+  border-top: 1px solid #ffffff22;
+  padding: 0.9rem;
+  background: linear-gradient(180deg, #101921 0%, #0c1318 100%);
+  font-family: "Space Grotesk", sans-serif;
+}
+
+.movie-details div {
+  margin-bottom: 0.45rem;
+}
+
+.movie-details a {
+  color: #8fd0ff;
+}
+
+.movie-card.open .movie-details {
+  display: block;
+}
+
+.movie-inline-editor {
+  margin-top: 0.8rem;
+  border-color: #3e5e76;
+  background: #0b1218;
+}
+
+.movie-inline-editor input,
+.movie-inline-editor select,
+.movie-inline-editor button {
+  background: #111e28;
+  border-color: #2e4556;
+  font-family: "Space Grotesk", sans-serif;
+}
+
+@media (max-width: 700px) {
+  .movies-controls {
+    width: calc(100vw - 1rem);
+    padding: 0 0.5rem;
+    box-sizing: border-box;
+  }
+
+  #movie-search {
+    width: 100%;
+    margin-right: 0;
+  }
+
+  .movies-controls #filter-panel {
+    right: 0.5rem;
+  }
+
+  #movies-list {
+    width: calc(100vw - 1rem);
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .movie-card-header {
+    grid-template-columns: 78px 1fr;
+  }
+
+  .movie-poster {
+    width: 78px;
+    height: 112px;
+  }
+
+  .movie-title {
+    font-size: 1.45rem;
+  }
+
+  .movie-subline {
+    flex-wrap: wrap;
+  }
+
+  .movie-card-header .card-edit-btn {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}

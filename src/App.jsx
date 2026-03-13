@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Home from "./pages/Home";
 import Coupons from "./pages/Coupons";
 import Recettes from "./pages/Recettes";
+import Movies from "./pages/Movies";
 
 function App() {
   const location = useLocation();
@@ -32,6 +33,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/coupons" element={<Coupons user={user} />} />
         <Route path="/recettes" element={<Recettes user={user} />} />
+        <Route path="/movies" element={<Movies user={user} />} />
       </Routes>
     </>
   );

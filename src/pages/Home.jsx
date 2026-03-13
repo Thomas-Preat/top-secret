@@ -9,6 +9,7 @@ function Home() {
       <div className="button-grid">
         <Link to="/coupons">Coupons</Link>
         <Link to="/recettes">Recettes</Link>
+        <Link to="/movies">Movies</Link>
       </div>
     </main>
   );

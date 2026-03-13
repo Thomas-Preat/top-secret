@@ -94,6 +94,9 @@ function Header({ user }) {
         <NavLink to="/recettes" onClick={() => setIsNavOpen(false)}>
           Recettes
         </NavLink>
+        <NavLink to="/movies" onClick={() => setIsNavOpen(false)}>
+          Movies
+        </NavLink>
 
         <div className="nav-admin" ref={loginRef}>
           <button

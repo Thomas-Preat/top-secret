@@ -5,9 +5,11 @@
 }
 
 .movies-controls {
-  width: min(1100px, calc(100vw - 2rem));
+  width: 100%;
+  max-width: 1100px;
   margin: 1rem auto 0;
   padding: 0;
+  box-sizing: border-box;
 }
 
 .movies-controls #filter-panel {
@@ -15,14 +17,19 @@
 }
 
 #movies-list {
-  width: min(1100px, calc(100vw - 2rem));
+  width: 100%;
+  max-width: 1100px;
   margin: 1rem auto 2rem;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
+  box-sizing: border-box;
 }
 
 .movie-card {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
   border: 1px solid #28363f;
   border-radius: 14px;
   overflow: hidden;
@@ -165,9 +172,8 @@
 
 @media (max-width: 700px) {
   .movies-controls {
-    width: calc(100vw - 1rem);
-    padding: 0 0.5rem;
-    box-sizing: border-box;
+    width: 100%;
+    padding: 0;
   }
 
   #movie-search {
@@ -180,7 +186,7 @@
   }
 
   #movies-list {
-    width: calc(100vw - 1rem);
+    width: 100%;
     grid-template-columns: 1fr;
     gap: 0.75rem;
   }
